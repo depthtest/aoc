@@ -281,5 +281,24 @@ def day6p2():
         per_day[8] = to_gen
     print(sum(per_day))
 
+def day7p1():
+    with open('res\\input7','r') as opfile:
+        crabs = list(map(lambda x: int(x), opfile.readline().strip().split(',')))
+    median = sorted(crabs)[len(crabs)//2]
+    acc = 0
+    for cr in crabs:
+        acc += abs(cr-median)
+    print(acc)
+
+def day7p2():
+    with open('res\\input7','r') as opfile:
+        crabs = list(map(lambda x: int(x), opfile.readline().strip().split(',')))
+    mean = int(sum(crabs)/len(crabs))
+    acc = 0
+    for cr in crabs:
+        dist = abs(cr-mean) + 1
+        acc += sum([i for i in range(dist)])
+    print(acc)
+
 import sys
 eval('day' + sys.argv[1] + '()')
