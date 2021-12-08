@@ -300,5 +300,93 @@ def day7p2():
         acc += sum([i for i in range(dist)])
     print(acc)
 
+def day8p1():
+    acc = 0
+    with open('res\\input8', 'r') as opfile:
+        for line in opfile:
+            outputs = line.strip().split(' | ')[1]
+
+            for dig in outputs.split():
+                if len(dig) < 5 or len(dig) == 7:
+                    acc += 1
+    print(acc)
+
+def day8p2():
+    def deduce(signals):
+        # SEGMENTS
+        #  aaaa
+        # b    c
+        # b    c
+        #  dddd
+        # e    f
+        # e    f
+        #  gggg
+        signs = [set(ss) for ss in signals]
+        segments = {}
+
+        numbers = [-1] * 10
+        numbers[1] = list(filter(lambda x: len(x)==2, signs))[0]
+        numbers[4] = list(filter(lambda x: len(x)==4, signs))[0]
+        numbers[7] = list(filter(lambda x: len(x)==3, signs))[0]
+        numbers[8] = list(filter(lambda x: len(x)==7, signs))[0]
+
+        signs.remove(numbers[1])
+        signs.remove(numbers[4])
+        signs.remove(numbers[7])
+        signs.remove(numbers[8])
+
+        found = False
+        for signal in filter(lambda x: len(x)==6, signs):
+            for el in numbers[1]:
+                if el not in signal:
+                    numbers[6] = signal
+                    segments['c'] = el
+                    found = True
+                    break
+            if found: break
+        segments['f'] = list(filter(lambda x: x != segments['c'], numbers[1]))[0]
+        signs.remove(numbers[6])
+
+        for signal in filter(lambda x: len(x)==5, signs):
+            five_lacking = list(filter(lambda x: x not in signal, numbers[6]))
+            if len(five_lacking) == 1:
+                segments['e'] = five_lacking[0]
+                numbers[5] = signal
+        signs.remove(numbers[5])
+
+        for signal in signs:
+            if segments['e'] in signal:
+                if len(signal) == 5:
+                    numbers[2] = signal
+                if len(signal) == 6:
+                    numbers[0] = signal
+            if segments['f'] in signal and len(signal) == 5:
+                numbers[3] = signal
+        signs.remove(numbers[2])
+        signs.remove(numbers[3])
+        signs.remove(numbers[0])
+
+        numbers[9] = signs[0]
+
+        ret_dict = {}
+        for idx, signal in enumerate(numbers):
+            ret_dict[frozenset(signal)] = str(idx)
+        return ret_dict
+
+    def decode(outputs, segments):
+        ret = ''
+        for out in outputs:
+            ret += segments[frozenset(out)]
+        return int(ret)
+    acc = 0
+    with open('res\\input8', 'r') as opfile:
+        for line in opfile:
+            linespl = line.split()
+            ins = linespl[:10]
+            outs = linespl[11:]
+            segments = deduce(ins)
+            acc += decode(outs, segments)
+    print(acc)
+
 import sys
 eval('day' + sys.argv[1] + '()')
