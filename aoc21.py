@@ -388,5 +388,65 @@ def day8p2():
             acc += decode(outs, segments)
     print(acc)
 
+def day9p1():
+    with open('res\\input9','r') as opfile:
+        lines = list(map(lambda x: x.strip(), opfile.readlines()))
+    acc = 0
+    for idx, line in enumerate(lines):
+        for jdx, ch in enumerate(line):
+            isMin = True
+            if idx > 0:
+                isMin &= ch < lines[idx-1][jdx]
+            if idx < (len(lines)-1):
+                isMin &= ch < lines[idx+1][jdx]
+            if jdx > 0:
+                isMin &= ch < lines[idx][jdx-1]
+            if jdx < (len(line)-1):
+                isMin &= ch < lines[idx][jdx+1]
+            if isMin:
+                acc += 1 + int(ch)
+    print(acc)
+
+def day9p2():
+    def growBasin(lines, i, j):
+        visited = {}
+        queue = [(i, j)]
+        while queue:
+            proc = queue.pop()
+            if proc in visited: continue
+            a, b = proc
+            if a > 0 and lines[a-1][b] < '9':
+                    queue.append((a-1, b))
+            if a < len(lines)-1 and lines[a+1][b] < '9':
+                    queue.append((a+1, b))
+            if b > 0 and lines[a][b-1] < '9':
+                    queue.append((a, b-1))
+            if b < len(lines[0])-1 and lines[a][b+1] < '9':
+                    queue.append((a, b+1))
+            visited[proc] = lines[a][b]
+        return len(visited)
+
+    with open('res\\input9','r') as opfile:
+        lines = list(map(lambda x: x.strip(), opfile.readlines()))
+    basins = []
+    for idx, line in enumerate(lines):
+        for jdx, ch in enumerate(line):
+            isMin = True
+            if idx > 0:
+                isMin &= ch < lines[idx-1][jdx]
+            if idx < (len(lines)-1):
+                isMin &= ch < lines[idx+1][jdx]
+            if jdx > 0:
+                isMin &= ch < lines[idx][jdx-1]
+            if jdx < (len(line)-1):
+                isMin &= ch < lines[idx][jdx+1]
+            if isMin:
+                basins.append(growBasin(lines, idx, jdx))
+    largest_basins = sorted(basins, reverse=True)[:3]
+    acc = 1
+    for bas in largest_basins:
+        acc *= bas
+    print(acc)
+
 import sys
 eval('day' + sys.argv[1] + '()')
