@@ -1,6 +1,3 @@
-from os import close
-
-
 def day1p1():
     inc, prev = 0, 0
     with open('res\\input1', 'r') as opfile:
