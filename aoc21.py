@@ -1,6 +1,6 @@
 def day1p1():
     inc, prev = 0, 0
-    with open('res\\input1', 'r') as opfile:
+    with open('input1', 'r') as opfile:
         for i, line in enumerate(opfile):
             if i > 0 and int(line)>prev:
                 inc += 1
@@ -9,7 +9,7 @@ def day1p1():
 
 def day1p2():
     inc = 0
-    with open('res\\input1', 'r') as opfile:
+    with open('input1', 'r') as opfile:
         lines = list(map(lambda x: int(x), opfile.readlines()))
         for i in range(1, len(lines)-2):
             if (lines[i]+lines[i+1]+lines[i+2]) > (lines[i-1]+lines[i]+lines[i+1]):
@@ -18,7 +18,7 @@ def day1p2():
 
 def day2p1():
     x, d = 0, 0
-    with open('res\\input2', 'r') as opfile:
+    with open('input2', 'r') as opfile:
         for line in opfile:
             ll = line.split()
             if ll[0] == 'forward':
@@ -31,7 +31,7 @@ def day2p1():
 
 def day2p2():
     x, d, aim = 0, 0, 0
-    with open('res\\input2', 'r') as opfile:
+    with open('input2', 'r') as opfile:
         for line in opfile:
             ll = line.split()
             if ll[0] == 'forward':
@@ -44,7 +44,7 @@ def day2p2():
     print(x, d, x*d)
 
 def day3p1():
-    with open('res\\input3','r') as opfile:
+    with open('input3','r') as opfile:
         onecount = []
         total_lines = 0
         for line in map(lambda x: x.split()[0], opfile):
@@ -62,7 +62,7 @@ def day3p1():
     print(mcb, lcb, mcb*lcb)
 
 def day3p2():
-    with open('res\\input3','r') as opfile:
+    with open('input3','r') as opfile:
         lines = list(map(lambda x: x.split()[0], opfile.readlines()))
 
     def getMostCommon(lines, idx):
@@ -137,7 +137,7 @@ class Day4:
             return val
 
 def day4p1():
-    with open('res\\input4', 'r') as opfile:
+    with open('input4', 'r') as opfile:
         num_list = list(map(lambda x : int(x), opfile.readline().split(',')))
         boards = []
         while True:
@@ -153,7 +153,7 @@ def day4p1():
                 return
 
 def day4p2():
-    with open('res\\input4', 'r') as opfile:
+    with open('input4', 'r') as opfile:
         num_list = list(map(lambda x : int(x), opfile.readline().split(',')))
         boards = []
         while True:
@@ -191,7 +191,7 @@ class Day5:
 
 def day5p1():
     points = {}
-    with open('res\\input5', 'r') as opfile:
+    with open('input5', 'r') as opfile:
         for l in opfile:
             x1, x2 = list(map(lambda x: x.split(','), l.strip().split(' -> ')))
             line = Day5.Line(
@@ -220,7 +220,7 @@ def day5p1():
 
 def day5p2():
     points = {}
-    with open('res\\input5', 'r') as opfile:
+    with open('input5', 'r') as opfile:
         for l in opfile:
             x1, x2 = list(map(lambda x: x.split(','), l.strip().split(' -> ')))
             line = Day5.Line(
@@ -258,7 +258,7 @@ def day5p2():
     print(tot_points)
 
 def day6p1():
-    with open('res\\input6', 'r') as opfile:
+    with open('input6', 'r') as opfile:
         fishes = list(map(lambda x: int(x), opfile.readline().strip().split(',')))
     for _ in range(80):
         fishes = list(map(lambda x: x-1, fishes))
@@ -268,7 +268,7 @@ def day6p1():
     print(len(fishes))
 
 def day6p2():
-    with open('res\\input6', 'r') as opfile:
+    with open('input6', 'r') as opfile:
         fishes = list(map(lambda x: int(x), opfile.readline().strip().split(',')))
     per_day = []
     for timer in range(9):
@@ -282,7 +282,7 @@ def day6p2():
     print(sum(per_day))
 
 def day7p1():
-    with open('res\\input7','r') as opfile:
+    with open('input7','r') as opfile:
         crabs = list(map(lambda x: int(x), opfile.readline().strip().split(',')))
     median = sorted(crabs)[len(crabs)//2]
     acc = 0
@@ -291,7 +291,7 @@ def day7p1():
     print(acc)
 
 def day7p2():
-    with open('res\\input7','r') as opfile:
+    with open('input7','r') as opfile:
         crabs = list(map(lambda x: int(x), opfile.readline().strip().split(',')))
     mean = int(sum(crabs)/len(crabs))
     acc = 0
@@ -302,7 +302,7 @@ def day7p2():
 
 def day8p1():
     acc = 0
-    with open('res\\input8', 'r') as opfile:
+    with open('input8', 'r') as opfile:
         for line in opfile:
             outputs = line.strip().split(' | ')[1]
 
@@ -379,7 +379,7 @@ def day8p2():
             ret += segments[frozenset(out)]
         return int(ret)
     acc = 0
-    with open('res\\input8', 'r') as opfile:
+    with open('input8', 'r') as opfile:
         for line in opfile:
             linespl = line.split()
             ins = linespl[:10]
@@ -389,7 +389,7 @@ def day8p2():
     print(acc)
 
 def day9p1():
-    with open('res\\input9','r') as opfile:
+    with open('input9','r') as opfile:
         lines = list(map(lambda x: x.strip(), opfile.readlines()))
     acc = 0
     for idx, line in enumerate(lines):
@@ -426,7 +426,7 @@ def day9p2():
             visited[proc] = lines[a][b]
         return len(visited)
 
-    with open('res\\input9','r') as opfile:
+    with open('input9','r') as opfile:
         lines = list(map(lambda x: x.strip(), opfile.readlines()))
     basins = []
     for idx, line in enumerate(lines):
@@ -452,7 +452,7 @@ def day10p1():
     openers = {'(':')', '[':']', '{':'}', '<':'>'}
     closers_points = {')':3, ']':57, '}':1197, '>':25137}
     acc_points = 0
-    with open('res\\input10', 'r') as opfile:
+    with open('input10', 'r') as opfile:
         for line in opfile:
             check = []
             line = line.strip()
@@ -470,7 +470,7 @@ def day10p2():
     openers = {'(':')', '[':']', '{':'}', '<':'>'}
     closers_points = {')':1, ']':2, '}':3, '>':4}
     scores = []
-    with open('res\\input10', 'r') as opfile:
+    with open('input10', 'r') as opfile:
         for line in opfile:
             check = []
             line = line.strip()
