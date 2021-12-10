@@ -1,3 +1,6 @@
+from os import close
+
+
 def day1p1():
     inc, prev = 0, 0
     with open('res\\input1', 'r') as opfile:
@@ -447,6 +450,50 @@ def day9p2():
     for bas in largest_basins:
         acc *= bas
     print(acc)
+
+def day10p1():
+    openers = {'(':')', '[':']', '{':'}', '<':'>'}
+    closers_points = {')':3, ']':57, '}':1197, '>':25137}
+    acc_points = 0
+    with open('res\\input10', 'r') as opfile:
+        for line in opfile:
+            check = []
+            line = line.strip()
+            for ch in line:
+                if ch in openers:
+                    check.append(ch)
+                if ch in closers_points:
+                    popped = check.pop()
+                    if openers[popped] != ch:
+                        #corrupted line
+                        acc_points += closers_points[ch]
+    print(acc_points)
+
+def day10p2():
+    openers = {'(':')', '[':']', '{':'}', '<':'>'}
+    closers_points = {')':1, ']':2, '}':3, '>':4}
+    scores = []
+    with open('res\\input10', 'r') as opfile:
+        for line in opfile:
+            check = []
+            line = line.strip()
+            corrupted = False
+            for ch in line:
+                if ch in openers:
+                    check.append(ch)
+                if ch in closers_points:
+                    popped = check.pop()
+                    if openers[popped] != ch:
+                        corrupted= True
+                        break
+            if corrupted: continue
+
+            line_score = 0
+            while check:
+                popped = check.pop()
+                line_score = line_score*5 + closers_points[openers[popped]]
+            scores.append(line_score)
+    print(sorted(scores)[len(scores)//2])
 
 import sys
 eval('day' + sys.argv[1] + '()')
