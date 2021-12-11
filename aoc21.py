@@ -492,5 +492,73 @@ def day10p2():
             scores.append(line_score)
     print(sorted(scores)[len(scores)//2])
 
+def day11p1():
+    with open('input11', 'r') as opfile:
+        grid = [[int(ch) for ch in line.strip()] for line in opfile]
+
+        total_flash = 0
+        for step in range(100):
+
+            for i in range(len(grid)):
+                for j in range(len(grid[i])):
+                    grid[i][j] = grid[i][j] + 1
+
+            while True:
+                flash_this_loop = 0
+
+                for i in range(len(grid)):
+                    for j in range(len(grid[i])):
+                        if grid[i][j] > 9:
+                            grid[i][j] = 0
+                            flash_this_loop += 1
+
+                            for x in range(-1,2):
+                                for y in range(-1,2):
+                                    if 0 <= i+x < len(grid) and 0 <= j+y < len(grid[i]):
+                                        if grid[i+x][j+y] > 0:
+                                            grid[i+x][j+y] += 1
+
+                total_flash += flash_this_loop
+                if flash_this_loop == 0:
+                    break
+
+    print(total_flash)
+
+def day11p2():
+    with open('input11', 'r') as opfile:
+        grid = [[int(ch) for ch in line.strip()] for line in opfile]
+
+        step = 0
+        while True:
+            step += 1
+
+            for i in range(len(grid)):
+                for j in range(len(grid[i])):
+                    grid[i][j] = grid[i][j] + 1
+
+            flash_this_step = 0
+            while True:
+                flash_this_loop = 0
+
+                for i in range(len(grid)):
+                    for j in range(len(grid[i])):
+                        if grid[i][j] > 9:
+                            grid[i][j] = 0
+                            flash_this_loop += 1
+
+                            for x in range(-1,2):
+                                for y in range(-1,2):
+                                    if 0 <= i+x < len(grid) and 0 <= j+y < len(grid[i]):
+                                        if grid[i+x][j+y] > 0:
+                                            grid[i+x][j+y] += 1
+
+                flash_this_step += flash_this_loop
+                if flash_this_loop == 0:
+                    break
+
+            if flash_this_step == len(grid) * len(grid[0]):
+                print(step)
+                return
+
 import sys
 eval('day' + sys.argv[1] + '()')
