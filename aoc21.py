@@ -560,5 +560,70 @@ def day11p2():
                 print(step)
                 return
 
+class Day12:
+    class Graph:
+        def __init__(self, edges):
+            self._adjacent = {}
+            for v_a, v_b in edges:
+                if v_a not in self._adjacent: self._adjacent[v_a] = set()
+                if v_b not in self._adjacent: self._adjacent[v_b] = set()
+                self._adjacent[v_a].add(v_b)
+                self._adjacent[v_b].add(v_a)
+        def get(self, vert):
+            return self._adjacent[vert]
+
+    def DFS_allpaths(graph, start, goal):
+        paths = []
+        this_path = [start]
+
+        def rec_dfs(graph, goal):
+            if this_path[-1] == goal:
+                paths.append(this_path)
+                return
+            for child in graph.get(this_path[-1]):
+                if child.isupper() or (child.islower() and child not in this_path):
+                    this_path.append(child)
+                    rec_dfs(graph, goal)
+                    this_path.pop()
+
+        rec_dfs(graph, goal)
+        return paths
+
+    def DFS_allpaths_v2(graph, start, goal):
+        paths = []
+        this_path = [start]
+
+        def rec_dfs(graph, goal, one_small_rep_allowed=True):
+            if this_path[-1] == goal:
+                paths.append(this_path)
+                return
+            for child in graph.get(this_path[-1]):
+                if child.isupper() or (child.islower() and (child not in this_path or one_small_rep_allowed)):
+                    if child == 'start': continue
+                    lower_and_isinpath = not(child.islower() and child in this_path)
+                    this_path.append(child)
+                    rec_dfs(graph, goal, one_small_rep_allowed and lower_and_isinpath)
+                    this_path.pop()
+
+        rec_dfs(graph, goal)
+        return paths
+
+def day12p1():
+    with open('input12', 'r') as opfile:
+        edg = list(map(lambda x: tuple(x.strip().split('-')), opfile.readlines()))
+        graph = Day12.Graph(edg)
+
+    paths = Day12.DFS_allpaths(graph, 'start', 'end')
+    print(len(paths))
+
+
+def day12p2():
+    with open('input12', 'r') as opfile:
+        edg = list(map(lambda x: tuple(x.strip().split('-')), opfile.readlines()))
+        graph = Day12.Graph(edg)
+
+    paths = Day12.DFS_allpaths_v2(graph, 'start', 'end')
+    print(len(paths))
+
 import sys
 eval('day' + sys.argv[1] + '()')
