@@ -632,7 +632,7 @@ def day13p1():
 
     point_rex = re.compile(r'(?P<xcoord>\d+),(?P<ycoord>\d+)')
     fold_rex = re.compile(r'fold along (?P<coord>x|y)=(?P<howmuch>\d+)')
-    with open('input', 'r') as opfile:
+    with open('input13', 'r') as opfile:
         for line in opfile:
             if match := point_rex.match(line):
                 points.add((int(match.groups()[0]), int(match.groups()[1])))
@@ -661,7 +661,7 @@ def day13p2():
 
     point_rex = re.compile(r'(?P<xcoord>\d+),(?P<ycoord>\d+)')
     fold_rex = re.compile(r'fold along (?P<coord>x|y)=(?P<howmuch>\d+)')
-    with open('input', 'r') as opfile:
+    with open('input13', 'r') as opfile:
         for line in opfile:
             if match := point_rex.match(line):
                 points.add((int(match.groups()[0]), int(match.groups()[1])))
