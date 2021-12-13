@@ -1,3 +1,5 @@
+import re
+
 def day1p1():
     inc, prev = 0, 0
     with open('input1', 'r') as opfile:
@@ -616,7 +618,6 @@ def day12p1():
     paths = Day12.DFS_allpaths(graph, 'start', 'end')
     print(len(paths))
 
-
 def day12p2():
     with open('input12', 'r') as opfile:
         edg = list(map(lambda x: tuple(x.strip().split('-')), opfile.readlines()))
@@ -624,6 +625,73 @@ def day12p2():
 
     paths = Day12.DFS_allpaths_v2(graph, 'start', 'end')
     print(len(paths))
+
+def day13p1():
+    points = set()
+    folds = []
+
+    point_rex = re.compile(r'(?P<xcoord>\d+),(?P<ycoord>\d+)')
+    fold_rex = re.compile(r'fold along (?P<coord>x|y)=(?P<howmuch>\d+)')
+    with open('input', 'r') as opfile:
+        for line in opfile:
+            if match := point_rex.match(line):
+                points.add((int(match.groups()[0]), int(match.groups()[1])))
+            elif match := fold_rex.match(line):
+                folds.append((match.groups()[0], int(match.groups()[1])))
+
+    folded = set(points)
+    for idx, fold in enumerate(folds):
+        if idx > 0: break
+
+        fold_coord = 0 if fold[0] == 'x' else 1
+        tomirror = list(filter(lambda x: x[fold_coord]>fold[1], folded))
+
+        for p in tomirror:
+            folded.remove(p)
+            mirror_point = (
+                (p[0] - 2*(p[0]-fold[1])) if fold_coord == 0 else p[0],
+                (p[1] - 2*(p[1]-fold[1])) if fold_coord == 1 else p[1],
+            )
+            folded.add(mirror_point)
+    print(len(folded))
+
+def day13p2():
+    points = set()
+    folds = []
+
+    point_rex = re.compile(r'(?P<xcoord>\d+),(?P<ycoord>\d+)')
+    fold_rex = re.compile(r'fold along (?P<coord>x|y)=(?P<howmuch>\d+)')
+    with open('input', 'r') as opfile:
+        for line in opfile:
+            if match := point_rex.match(line):
+                points.add((int(match.groups()[0]), int(match.groups()[1])))
+            elif match := fold_rex.match(line):
+                folds.append((match.groups()[0], int(match.groups()[1])))
+
+    folded = set(points)
+    for fold in folds:
+        fold_coord = 0 if fold[0] == 'x' else 1
+        tomirror = list(filter(lambda x: x[fold_coord]>fold[1], folded))
+
+        for p in tomirror:
+            folded.remove(p)
+            mirror_point = (
+                (p[0] - 2*(p[0]-fold[1])) if fold_coord == 0 else p[0],
+                (p[1] - 2*(p[1]-fold[1])) if fold_coord == 1 else p[1],
+            )
+            folded.add(mirror_point)
+
+    max_x = max(map(lambda x: x[0], folded))
+    max_y = max(map(lambda x: x[1], folded))
+
+    for j in range(max_y+1):
+        str_to_scrn = ''
+        for i in range(max_x+1):
+            if (i,j) in folded:
+                str_to_scrn += '#'
+            else:
+                str_to_scrn += '.'
+        print(str_to_scrn)
 
 import sys
 eval('day' + sys.argv[1] + '()')
