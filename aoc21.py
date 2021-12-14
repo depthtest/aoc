@@ -60,7 +60,6 @@ def day3p1():
 
     mcb = int(mcb, 2)
     lcb = int(lcb, 2)
-    
     print(mcb, lcb, mcb*lcb)
 
 def day3p2():
@@ -692,6 +691,81 @@ def day13p2():
             else:
                 str_to_scrn += '.'
         print(str_to_scrn)
+
+def day14p1():
+    template_rex = re.compile(r'^(?P<polymer>[A-Z]+)$')
+    pair_ins_rex = re.compile(r'(?P<pair>[A-Z]+) -> (?P<ins>[A-Z])')
+    with open('input14', 'r') as opfile:
+        pairs = {}
+        for line in opfile:
+            if matches := template_rex.match(line):
+                template = matches.groups()[0]
+            elif matches := pair_ins_rex.match(line):
+                pairs[matches.groups()[0]] = matches.groups()[1]
+
+    cnts_idx = {}
+    cnts = []
+
+    def append(tmp, newchar):
+        if newchar not in cnts_idx:
+            cnts_idx[newchar] = len(cnts)
+            cnts.append(1)
+        else: cnts[cnts_idx[newchar]] += 1
+        return tmp + newchar
+
+    for _ in range(10):
+        newtmp = ''
+        cnts_idx.clear()
+        cnts.clear()
+        for idx in range(len(template)):
+            if idx < len(template):
+                newtmp = append(newtmp, template[idx])
+            if template[idx:idx+2] in pairs:
+                newtmp = append(newtmp, pairs[template[idx:idx+2]])
+        template = newtmp
+
+    max_char_cnt = max(cnts)
+    min_char_cnt = min(cnts)
+    print(max_char_cnt - min_char_cnt)
+
+def day14p2():
+    template_rex = re.compile(r'^(?P<polymer>[A-Z]+)$')
+    pair_ins_rex = re.compile(r'(?P<pair>[A-Z]+) -> (?P<ins>[A-Z])')
+    with open('input14', 'r') as opfile:
+        pairs = {}
+        for line in opfile:
+            if matches := template_rex.match(line):
+                template = matches.groups()[0]
+            elif matches := pair_ins_rex.match(line):
+                pairs[matches.groups()[0]] = matches.groups()[1]
+
+    def add_to_cnts(mapcnt, elem, val=1):
+        if elem not in mapcnt: mapcnt[elem] = val
+        else: mapcnt[elem] += val
+
+    cnts = {}
+    for idx in range(len(template)-1):
+        pair = template[idx:idx+2]
+        add_to_cnts(cnts, pair)
+
+    for _ in range(40):
+        this_step_map = {}
+        for pair in cnts:
+            if pair in pairs:
+                add_to_cnts(this_step_map, pair[0]+pairs[pair], cnts[pair])
+                add_to_cnts(this_step_map, pairs[pair]+pair[1], cnts[pair])
+        cnts = this_step_map
+
+    letter_cnt = {}
+    for k, v in cnts.items():
+        add_to_cnts(letter_cnt, k[1], v)
+    letter_cnt[template[0]] += 1
+
+    max_ch = max(letter_cnt.items(), key=lambda x:x[1])
+    min_ch = min(letter_cnt.items(), key=lambda x:x[1])
+
+    print(max_ch[1] - min_ch[1])
+
 
 import sys
 eval('day' + sys.argv[1] + '()')
