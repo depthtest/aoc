@@ -1,4 +1,5 @@
 import re
+from heapq import heapify, heappush, heappop
 
 def day1p1():
     inc, prev = 0, 0
@@ -766,6 +767,68 @@ def day14p2():
 
     print(max_ch[1] - min_ch[1])
 
+def day15p1():
+    with open('input15', 'r') as opfile:
+        matrix = [list(map(lambda x: int(x), line.strip())) for line in opfile.readlines()]
+
+    acc_matrix = [[1000000 for m_row_col in m_row] for m_row in matrix]
+    acc_matrix[0][0] = 0
+
+    neighs = [(1,0), (0,1), (-1, 0), (0, -1)]
+    def neigh(curr, add):
+        return tuple(map(lambda x: x[0]+x[1], zip(curr, add)))
+    def valid_neigh(pos):
+        return (-1 < pos[0] < len(matrix)) and (-1 < pos[1] < len(matrix[0]))
+
+    queue = [(0, (0,0))]
+    heapify(queue)
+    while queue:
+        _, this_pos = heappop(queue)
+        for ne in neighs:
+            nxt = neigh(this_pos, ne)
+            if valid_neigh(nxt):
+                possible_cost = acc_matrix[this_pos[0]][this_pos[1]] + matrix[nxt[0]][nxt[1]]
+                actual_cost = acc_matrix[nxt[0]][nxt[1]]
+                if possible_cost < actual_cost:
+                    acc_matrix[nxt[0]][nxt[1]] = possible_cost
+                    heappush(queue, (possible_cost, nxt))
+
+    print(acc_matrix[-1][-1])
+
+def day15p2():    
+    with open('input15', 'r') as opfile:
+        matrix = [list(map(lambda x: int(x), line.strip())) for line in opfile.readlines()]
+
+    real_matrix = [[-1 for _ in range(len(matrix[0])*5)] for _ in range(len(matrix)*5)]
+    for j5 in range(5):
+        for i5 in range(5):
+            for j in range(len(matrix)):
+                for i in range(len(matrix[j])):
+                    real_matrix[j5*len(matrix) + j][i5*len(matrix[j]) + i] = (matrix[j][i] + i5 + j5 - 1) % 9 + 1
+
+    acc_matrix = [[1000000 for _ in real_matrix[0]] for _ in real_matrix]
+    acc_matrix[0][0] = 0
+
+    neighs = [(1,0), (0,1), (-1, 0), (0, -1)]
+    def neigh(curr, add):
+        return tuple(map(lambda x: x[0]+x[1], zip(curr, add)))
+    def valid_neigh(pos):
+        return (-1 < pos[0] < len(real_matrix)) and (-1 < pos[1] < len(real_matrix[0]))
+
+    queue = [(0, (0,0))]
+    heapify(queue)
+    while queue:
+        _, this_pos = heappop(queue)
+        for ne in neighs:
+            nxt = neigh(this_pos, ne)
+            if valid_neigh(nxt):
+                possible_cost = acc_matrix[this_pos[0]][this_pos[1]] + real_matrix[nxt[0]][nxt[1]]
+                actual_cost = acc_matrix[nxt[0]][nxt[1]]
+                if possible_cost < actual_cost:
+                    acc_matrix[nxt[0]][nxt[1]] = possible_cost
+                    heappush(queue, (possible_cost, nxt))
+
+    print(acc_matrix[-1][-1])
 
 import sys
 eval('day' + sys.argv[1] + '()')
