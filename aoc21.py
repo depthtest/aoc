@@ -830,5 +830,127 @@ def day15p2():
 
     print(acc_matrix[-1][-1])
 
+class Day16:
+    V_LEN = 3
+    T_LEN = 3
+    TID0_LEN = 16
+    TID1_LEN = 12
+
+    class TreeNode:
+        def __init__(self, data):
+            self.data = data
+            self.children = []
+
+    @staticmethod
+    def read_bits(line, idx, nbits):
+        data = line[idx:idx+nbits]
+        return data, idx+nbits
+    @staticmethod
+    def read_opcode(line, idx):
+        version, idx = Day16.read_bits(line, idx, 3)
+        opcode, idx = Day16.read_bits(line, idx, 3)
+        return int(version,2), int(opcode,2), idx
+    @staticmethod
+    def read_literal(line, idx):
+        acc = ''
+        cnt = 0
+        while True:
+            cont, idx = Day16.read_bits(line, idx, 1)
+            val, idx = Day16.read_bits(line, idx, 4)
+            acc += val
+            cnt += 5
+            if cont == '0':
+                break
+        return int(acc, 2), cnt, idx
+    @staticmethod
+    def read_op_type_length(line, idx):
+        type_id, idx = Day16.read_bits(line, idx, 1)
+        if type_id == '1':
+            length, idx = Day16.read_bits(line, idx, 11)
+        else:
+            length, idx = Day16.read_bits(line, idx, 15)
+        return int(type_id,2), int(length,2), idx
+
+def day16p1():
+    with open('input16', 'r') as opfile:
+        opline = bytearray.fromhex(opfile.readline().strip())
+        line = ''.join([f'{li:08b}' for li in opline])
+    idx = 0
+    version_acc = 0
+    while len(line) - idx > 10:
+        version, optype, idx = Day16.read_opcode(line, idx)
+        if optype == 4:
+            literal, nbits, idx = Day16.read_literal(line, idx)
+        else:
+            type_id, length, idx = Day16.read_op_type_length(line, idx)
+        version_acc += version
+    print(version_acc)
+
+def day16p2():
+    with open('input16', 'r') as opfile:
+        opline = bytearray.fromhex(opfile.readline().strip())
+        line = ''.join([f'{li:08b}' for li in opline])
+    idx = 0
+    stack = []
+    while len(line) - idx > 10:
+        version, optype, idx = Day16.read_opcode(line, idx)
+        if optype == 4:
+            literal, nbits, idx = Day16.read_literal(line, idx)
+            newnode = Day16.TreeNode({
+                'value' : literal,
+                'nbits' : nbits,
+                'header_length' : Day16.V_LEN+Day16.T_LEN
+            })
+            stack.append(newnode)
+        else:
+            type_id, length, idx = Day16.read_op_type_length(line, idx)
+            newnode = Day16.TreeNode({
+                'op' : optype,
+                'type_id' : type_id,
+                'length' : length,
+                'nbits' : 0,
+                'header_length': Day16.V_LEN + Day16.T_LEN + (Day16.TID0_LEN if type_id==0 else Day16.TID1_LEN)
+            })
+            stack.append(newnode)
+
+        while len(stack)>1:
+            if 'value' in stack[-1].data \
+                or (stack[-1].data['type_id'] == 1 and stack[-1].data['length'] == len(stack[-1].children)) \
+                or (stack[-1].data['type_id'] == 0 and stack[-1].data['length'] == stack[-1].data['nbits']):
+                node = stack.pop()
+                stack[-1].children.append(node)
+                stack[-1].data['nbits'] += node.data['nbits'] + node.data['header_length']
+            else:
+                break
+
+    def traverse(node):
+        if 'value' in node.data: return node.data['value']
+
+        if node.data['op'] == 0: # SUM
+            return sum(map(traverse, node.children))
+        elif node.data['op'] == 1: # PROD
+            acc = 1
+            for el in map(traverse, node.children):
+                acc *= el
+            return acc
+        elif node.data['op'] == 2: # MIN
+            return min(map(traverse, node.children))
+        elif node.data['op'] == 3: # MAX
+            return max(map(traverse, node.children))
+        elif node.data['op'] == 5: # GT
+            left = traverse(node.children[0])
+            right = traverse(node.children[1])
+            return 1 if left > right else 0
+        elif node.data['op'] == 6: # LT
+            left = traverse(node.children[0])
+            right = traverse(node.children[1])
+            return 1 if left < right else 0
+        elif node.data['op'] == 7: # EQ
+            left = traverse(node.children[0])
+            right = traverse(node.children[1])
+            return 1 if left == right else 0
+
+    print(traverse(stack[0]))
+
 import sys
 eval('day' + sys.argv[1] + '()')
