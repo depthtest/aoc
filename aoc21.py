@@ -1,3 +1,4 @@
+import math
 import re
 from heapq import heapify, heappush, heappop
 
@@ -951,6 +952,49 @@ def day16p2():
             return 1 if left == right else 0
 
     print(traverse(stack[0]))
+
+def day17p1():
+    target_rex = re.compile(r'([a-z]|\s)+: x=(?P<xmin>-?[0-9]+)..(?P<xmax>-?[0-9]+), y=(?P<ymin>-?[0-9]+)..(?P<ymax>-?[0-9]+)')
+    with open('input17', 'r') as opfile:
+        line = opfile.readline()[:-1]
+        matches = target_rex.match(line)
+        ymin = int(matches.groupdict()['ymin'])
+
+    ypos = ymin
+    yvel = ymin
+    while yvel < 0:
+        ypos -= yvel
+        yvel += 1
+    print(ypos, yvel)
+
+def day17p2():
+    target_rex = re.compile(r'([a-z]|\s)+: x=(?P<xmin>-?[0-9]+)..(?P<xmax>-?[0-9]+), y=(?P<ymin>-?[0-9]+)..(?P<ymax>-?[0-9]+)')
+    with open('input17', 'r') as opfile:
+        line = opfile.readline()[:-1]
+    matches = target_rex.match(line)
+    xmin = int(matches.groupdict()['xmin'])
+    xmax = int(matches.groupdict()['xmax'])
+    ymin = int(matches.groupdict()['ymin'])
+    ymax = int(matches.groupdict()['ymax'])
+
+    dif_vels = set()
+    for xvel in range(int(math.sqrt(xmin))-1, xmax+1):
+        for yvel in range(ymin, -ymin+1):
+            xpos, ypos = 0, 0
+            this_xvel, this_yvel = xvel, yvel
+            while not(ymin <= ypos <= ymax) or not(xmin <= xpos <= xmax):
+                xpos += this_xvel
+                ypos += this_yvel
+                this_xvel += (-1 if this_xvel > 0 else 0)
+                this_yvel -= 1
+
+                if xpos > xmax or ypos < ymin:
+                    break
+
+            if (ymin <= ypos <= ymax) and (xmin <= xpos <= xmax):
+                dif_vels.add((xvel, yvel))
+
+    print(len(dif_vels))
 
 import sys
 eval('day' + sys.argv[1] + '()')
