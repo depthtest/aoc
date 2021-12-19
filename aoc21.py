@@ -1,4 +1,5 @@
 import math
+import json
 import re
 from heapq import heapify, heappush, heappop
 
@@ -995,6 +996,161 @@ def day17p2():
                 dif_vels.add((xvel, yvel))
 
     print(len(dif_vels))
+
+class Day18:
+    class BinTreeNode:
+        def __init__(self):
+            self.data = None
+            self.left = None
+            self.right = None
+            self.parent = None
+        def level(self):
+            nod = self
+            lvl = 0
+            while nod.parent is not None:
+                lvl += 1
+                nod = nod.parent
+            return lvl
+        def is_regular(self):
+            return self.left is None and self.right is None
+        def is_pair(self):
+            return not self.is_regular() and self.left.is_regular() and self.right.is_regular()
+        def find_first_descendant(self, func):
+            if func(self): return self
+            if self.is_regular(): return None
+            if left := self.left.find_first_descendant(func): return left
+            if right := self.right.find_first_descendant(func): return right
+            return None
+        def get_left_regular(self):
+            next = self
+            while next.parent and next == next.parent.left:
+                next = next.parent
+            if next.parent is None or next.parent.left is None:
+                return None
+            next = next.parent.left
+            while not next.is_regular():
+                next = next.right
+            return next
+        def get_right_regular(self):
+            next = self
+            while next.parent and next == next.parent.right:
+                next = next.parent
+            if next.parent is None or next.parent.right is None:
+                return None
+            next = next.parent.right
+            while not next.is_regular():
+                next = next.left
+            return next
+        def magnitude(self):
+            if self.is_regular():
+                return self.data
+            return 3*self.left.magnitude() + 2*self.right.magnitude()
+        def __repr__(self) -> str:
+            if self.data is not None: return str(self.data)
+            return f'[{str(self.left)}, {str(self.right)}]'
+    @staticmethod
+    def buildtree(lst):
+        node = Day18.BinTreeNode()
+        if type(lst) == int:
+            node.data = lst
+            return node
+
+        node.left = Day18.buildtree(lst[0])
+        node.right = Day18.buildtree(lst[1])
+        node.left.parent = node
+        node.right.parent = node
+        return node
+    @staticmethod
+    def explode(snailfish:BinTreeNode) -> bool:
+        # FIND LEFTMOST PAIR AT LEVEL 4+
+        if leftmost_pair_l4 := snailfish.find_first_descendant(lambda x: x.is_pair() and x.level()==4):
+            # EXPLODE:
+            #   the pair's left value is added to the first regular number to the left of the exploding pair (if any)
+            #   the pair's right value is added to the first regular number to the right of the exploding pair (if any)
+            #   Exploding pairs will always consist of two regular numbers
+            #   the entire exploding pair is replaced with the regular number 0.
+            if left_regular := leftmost_pair_l4.get_left_regular():
+                left_regular.data += leftmost_pair_l4.left.data
+            if right_regular := leftmost_pair_l4.get_right_regular():
+                right_regular.data += leftmost_pair_l4.right.data
+
+            leftmost_pair_l4.data = 0
+            leftmost_pair_l4.left = None
+            leftmost_pair_l4.right = None
+            return True
+        return False
+    @staticmethod
+    def split(snailfish:BinTreeNode) -> bool:
+        # FIND LEFTMOST REGULAR >= 10
+        if leftmost_regular_ge10 := snailfish.find_first_descendant(lambda x: x.is_regular() and x.data >= 10):
+            # SPLIT:
+            #   replace the regular with a pair:
+            #   the left element of the pair should be the regular number divided by two and rounded down
+            #   the right element of the pair should be the regular number divided by two and rounded up
+            left_node = Day18.BinTreeNode()
+            left_node.data = leftmost_regular_ge10.data // 2
+            left_node.parent = leftmost_regular_ge10
+
+            right_node = Day18.BinTreeNode()
+            right_node.data = leftmost_regular_ge10.data // 2 + leftmost_regular_ge10.data % 2
+            right_node.parent = leftmost_regular_ge10
+
+            leftmost_regular_ge10.data = None
+            leftmost_regular_ge10.left = left_node
+            leftmost_regular_ge10.right = right_node
+            return True
+        return False
+    @staticmethod
+    def reduce(snailfish:BinTreeNode):
+        while True:
+            if not Day18.explode(snailfish) and not Day18.split(snailfish):
+                break
+    @staticmethod
+    def addition(snailfishA:BinTreeNode, snailfishB:BinTreeNode):
+        if snailfishA is None:
+            return snailfishB
+        node = Day18.BinTreeNode()
+        node.left = snailfishA
+        node.right = snailfishB
+        node.left.parent = node
+        node.right.parent = node
+        return node
+
+def day18p1():
+    accum_snailfish = None
+    with open('input18', 'r') as opfile:
+        for line in opfile:
+            bintree = Day18.buildtree(json.loads(line))
+            Day18.reduce(bintree)
+
+            accum_snailfish = Day18.addition(accum_snailfish, bintree)
+            Day18.reduce(accum_snailfish)
+    print(accum_snailfish.magnitude())
+
+def day18p2():
+    snailfishes = []
+    with open('input18', 'r') as opfile:
+        for line in opfile:
+            bintree = Day18.buildtree(json.loads(line))
+            Day18.reduce(bintree)
+            snailfishes.append(bintree)
+
+    def get_magnitude(asnail, bsnail):
+        a_sf = Day18.buildtree(json.loads(str(asnail)))
+        b_sf = Day18.buildtree(json.loads(str(bsnail)))
+        ab_sf = Day18.addition(a_sf, b_sf)
+        Day18.reduce(ab_sf)
+        return ab_sf.magnitude()
+
+    best_magnitude = 0
+    for i in range(len(snailfishes)-1):
+        for j in range(i, len(snailfishes)):
+            ij_mag = get_magnitude(snailfishes[i], snailfishes[j])
+            if ij_mag > best_magnitude: best_magnitude = ij_mag
+            ji_mag = get_magnitude(snailfishes[j], snailfishes[i])
+            if ji_mag > best_magnitude: best_magnitude = ji_mag
+    print(best_magnitude)
+
 
 import sys
 eval('day' + sys.argv[1] + '()')
