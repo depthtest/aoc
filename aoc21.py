@@ -1151,6 +1151,63 @@ def day18p2():
             if ji_mag > best_magnitude: best_magnitude = ji_mag
     print(best_magnitude)
 
+def day20p1():
+    def convolve(img, enh, is_odd=True):
+        kernel = [(-1,-1),(-1,0),(-1,1),(0,-1),(0,0),(0,1),(1,-1),(1,0),(1,1)]
+        out_img = [[0 for _ in range(len(img[0])+2)] for _ in range(len(img)+2)]
+        for i in range(len(out_img)):
+            for j in range(len(out_img[i])):
+                acc = ''
+                for val in kernel:
+                    coord = (i + val[0] - 1, j + val[1] - 1)
+                    if coord[0] < 0 or coord[0] >= len(img) or coord[1] < 0 or coord[1] >= len(img[0]):
+                        acc += ('0' if is_odd else '1')
+                    else:
+                        acc += img[coord[0]][coord[1]]
+                out_img[i][j] = enh[int(acc, 2)]
+        return out_img
+
+    with open('input20', 'r') as opfile:
+        enhance = opfile.readline().strip().replace('.', '0').replace('#', '1')
+        opfile.readline()
+        image = list(map(lambda x: list(x.strip().replace('.', '0').replace('#', '1')) ,opfile.readlines()))
+
+    newimage = convolve(image, enhance)
+    newimage = convolve(newimage, enhance, is_odd=False)
+    acc = 0
+    for line in newimage:
+        acc += sum(map(int, line))
+    print(acc)
+
+def day20p2():
+    def convolve(img, enh, is_odd=True):
+        kernel = [(-1,-1),(-1,0),(-1,1),(0,-1),(0,0),(0,1),(1,-1),(1,0),(1,1)]
+        out_img = [[0 for _ in range(len(img[0])+2)] for _ in range(len(img)+2)]
+        for i in range(len(out_img)):
+            for j in range(len(out_img[i])):
+                acc = ''
+                for val in kernel:
+                    coord = (i + val[0] - 1, j + val[1] - 1)
+                    if coord[0] < 0 or coord[0] >= len(img) or coord[1] < 0 or coord[1] >= len(img[0]):
+                        acc += ('0' if is_odd else '1')
+                    else:
+                        acc += img[coord[0]][coord[1]]
+                out_img[i][j] = enh[int(acc, 2)]
+        return out_img
+
+    with open('input20', 'r') as opfile:
+        enhance = opfile.readline().strip().replace('.', '0').replace('#', '1')
+        opfile.readline()
+        image = list(map(lambda x: list(x.strip().replace('.', '0').replace('#', '1')) ,opfile.readlines()))
+
+    newimage = convolve(image, enhance)
+    for i in range(49):
+        newimage = convolve(newimage, enhance, is_odd=(i%2))
+    acc = 0
+    for line in newimage:
+        acc += sum(map(int, line))
+    print(acc)
+
 
 import sys
 eval('day' + sys.argv[1] + '()')
