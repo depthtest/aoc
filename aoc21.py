@@ -2,6 +2,7 @@ import math
 import json
 import re
 from heapq import heapify, heappush, heappop
+from collections import defaultdict
 
 def day1p1():
     inc, prev = 0, 0
@@ -1150,6 +1151,158 @@ def day18p2():
             ji_mag = get_magnitude(snailfishes[j], snailfishes[i])
             if ji_mag > best_magnitude: best_magnitude = ji_mag
     print(best_magnitude)
+
+class Day19:
+    class Vec3:
+        def __init__(self, x, y, z):
+            self.x, self.y, self.z = x, y, z
+        def __add__(self, other):
+            return Day19.Vec3(self.x + other.x, self.y + other.y, self.z + other.z)
+        def __sub__(self, other):
+            return Day19.Vec3(self.x - other.x, self.y - other.y, self.z - other.z)
+        def __repr__(self):
+            return f'V({self.x},{self.y},{self.z})'
+        def as_tuple(self):
+            return (self.x, self.y, self.z)
+    def cross(a:Vec3, b:Vec3) -> Vec3:
+        return Day19.Vec3(a.y*b.z-a.z*b.y, -a.x*b.z+a.z*b.x, a.x*b.y-a.y*b.x)
+    def eye():
+        return [Day19.Vec3(1,0,0), Day19.Vec3(0,1,0), Day19.Vec3(0,0,1)]
+    def prod(mat, vec):
+        return Day19.Vec3(
+            mat[0].x * vec.x + mat[1].x * vec.y + mat[2].x * vec.z,
+            mat[0].y * vec.x + mat[1].y * vec.y + mat[2].y * vec.z,
+            mat[0].z * vec.x + mat[1].z * vec.y + mat[2].z * vec.z
+        )
+    def manhattan(a:Vec3, b:Vec3) -> int:
+        return int(sum(map(abs,(a - b).as_tuple())))
+
+def day19p1():
+    point_rex = re.compile(r'(?P<x>-?[0-9]+),(?P<y>-?[0-9]+),(?P<z>-?[0-9]+)')
+    scanner_beacons = [[]]
+    with open('input', 'r') as opfile:
+        for line in opfile:
+            if line == '\n':
+                scanner_beacons.append([])
+            if matches := point_rex.match(line):
+                point = Day19.Vec3(int(matches.groupdict()['x']), int(matches.groupdict()['y']), int(matches.groupdict()['z']))
+                scanner_beacons[-1].append(point)
+
+    matrices = []
+    signs = (1, -1)
+    for x in range(3):
+        for signx in signs:
+            for y in range(3):
+                if y == x: continue
+                for signy in signs:
+                    mat = [Day19.Vec3(*((signx if x==idx else 0) for idx in range(3)))]
+                    mat.append(Day19.Vec3(*((signy if y==idx else 0) for idx in range(3))))
+                    mat.append(Day19.cross(mat[0], mat[1]))
+                    matrices.append(mat)
+
+    scanner_pos_rot = [None for _ in range(len(scanner_beacons))]
+    scanner_pos_rot[0] = (Day19.eye(), Day19.Vec3(0,0,0))
+    already_matched = set([0])
+    while len(already_matched) != len(scanner_beacons):
+        for scanner_idx in range(1, len(scanner_beacons)):
+            if scanner_idx in already_matched: continue
+
+            for already_scanner in already_matched:
+                found = False
+                for xform in matrices:
+                    xformed_beacons = list(map(lambda x: Day19.prod(xform, x), scanner_beacons[scanner_idx]))
+                    #search for 12 same beacons
+                    cnt = defaultdict(int)
+                    for point_x in xformed_beacons:
+                        for point_al in scanner_beacons[already_scanner]:
+                            cnt[(point_al - point_x).as_tuple()] += 1
+
+                    matched_point = list(filter(lambda x: x[1]==12, cnt.items()))
+                    if len(matched_point) != 1:
+                        continue
+
+                    #compute scanner position
+                    matched_point = Day19.Vec3(*matched_point[0][0])
+                    scanner_pos_rot[scanner_idx] = (xform, matched_point)
+
+                    #transform beacons to global positions
+                    scanner_beacons[scanner_idx] = list(map(lambda x: x + scanner_pos_rot[scanner_idx][1], xformed_beacons))
+                    
+                    already_matched.add(scanner_idx)
+                    #scanner_idx += 1
+                    found = True
+                    break
+                if found:
+                    break
+    beacons = set()
+    for scanner in range(len(scanner_beacons)):
+        beacons.update( map(lambda x: x.as_tuple(),  scanner_beacons[scanner]) )
+    print(len(beacons))
+
+def day19p2():
+    point_rex = re.compile(r'(?P<x>-?[0-9]+),(?P<y>-?[0-9]+),(?P<z>-?[0-9]+)')
+    scanner_beacons = [[]]
+    with open('input', 'r') as opfile:
+        for line in opfile:
+            if line == '\n':
+                scanner_beacons.append([])
+            if matches := point_rex.match(line):
+                point = Day19.Vec3(int(matches.groupdict()['x']), int(matches.groupdict()['y']), int(matches.groupdict()['z']))
+                scanner_beacons[-1].append(point)
+
+    matrices = []
+    signs = (1, -1)
+    for x in range(3):
+        for signx in signs:
+            for y in range(3):
+                if y == x: continue
+                for signy in signs:
+                    mat = [Day19.Vec3(*((signx if x==idx else 0) for idx in range(3)))]
+                    mat.append(Day19.Vec3(*((signy if y==idx else 0) for idx in range(3))))
+                    mat.append(Day19.cross(mat[0], mat[1]))
+                    matrices.append(mat)
+
+    scanner_pos_rot = [None for _ in range(len(scanner_beacons))]
+    scanner_pos_rot[0] = (Day19.eye(), Day19.Vec3(0,0,0))
+    already_matched = set([0])
+    while len(already_matched) != len(scanner_beacons):
+        for scanner_idx in range(1, len(scanner_beacons)):
+            if scanner_idx in already_matched: continue
+
+            for already_scanner in already_matched:
+                found = False
+                for xform in matrices:
+                    xformed_beacons = list(map(lambda x: Day19.prod(xform, x), scanner_beacons[scanner_idx]))
+                    #search for 12 same beacons
+                    cnt = defaultdict(int)
+                    for point_x in xformed_beacons:
+                        for point_al in scanner_beacons[already_scanner]:
+                            cnt[(point_al - point_x).as_tuple()] += 1
+
+                    matched_point = list(filter(lambda x: x[1]==12, cnt.items()))
+                    if len(matched_point) != 1:
+                        continue
+
+                    #compute scanner position
+                    matched_point = Day19.Vec3(*matched_point[0][0])
+                    scanner_pos_rot[scanner_idx] = (xform, matched_point)
+
+                    #transform beacons to global positions
+                    scanner_beacons[scanner_idx] = list(map(lambda x: x + scanner_pos_rot[scanner_idx][1], xformed_beacons))
+                    
+                    already_matched.add(scanner_idx)
+                    #scanner_idx += 1
+                    found = True
+                    break
+                if found:
+                    break
+    max_manhattan = 0
+    for i in range(1, len(scanner_beacons)-1):
+        for j in range(i, len(scanner_beacons)):
+            man_dist = Day19.manhattan(scanner_pos_rot[i][1], scanner_pos_rot[j][1])
+            if man_dist > max_manhattan:
+                max_manhattan = man_dist
+    print(max_manhattan)
 
 def day20p1():
     def convolve(img, enh, is_odd=True):
