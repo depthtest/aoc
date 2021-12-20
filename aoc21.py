@@ -1229,7 +1229,6 @@ def day19p1():
                     scanner_beacons[scanner_idx] = list(map(lambda x: x + scanner_pos_rot[scanner_idx][1], xformed_beacons))
                     
                     already_matched.add(scanner_idx)
-                    #scanner_idx += 1
                     found = True
                     break
                 if found:
@@ -1291,7 +1290,6 @@ def day19p2():
                     scanner_beacons[scanner_idx] = list(map(lambda x: x + scanner_pos_rot[scanner_idx][1], xformed_beacons))
                     
                     already_matched.add(scanner_idx)
-                    #scanner_idx += 1
                     found = True
                     break
                 if found:
