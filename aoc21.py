@@ -1359,6 +1359,54 @@ def day20p2():
         acc += sum(map(int, line))
     print(acc)
 
+def day21p1():
+    with open('input21', 'r') as opfile:
+        p1_starting = int(opfile.readline().split(': ')[1].strip())
+        p2_starting = int(opfile.readline().split(': ')[1].strip())
+
+    players = [[p1_starting, 0], [p2_starting, 0]]
+    this_player = 0
+    die = 1
+    while players[0][1] < 1000 and players[1][1] < 1000:
+        die_val = (die-1) % 100 + 1
+        players[this_player][0] = (players[this_player][0] + (3*die_val+3) - 1) % 10 + 1
+        players[this_player][1] += players[this_player][0]
+        this_player = abs(this_player-1)
+        die += 3
+    if players[0][1] < 1000:
+        print(players[0][1] * (die-1))
+    else:
+        print(players[1][1] * (die-1))
+
+def day21p2():
+    with open('input21', 'r') as opfile:
+        p1_starting = int(opfile.readline().split(': ')[1].strip())
+        p2_starting = int(opfile.readline().split(': ')[1].strip())
+
+    def play(state, player, univs):
+        if (*state, player) in univs:
+            return univs[(*state, player)]
+
+        wins = [0, 0]
+        die_rolls = [i+j+k for i in range(1,4) for j in range(1,4) for k in range(1,4)]
+
+        for i in die_rolls:
+            lst_st = list(state)
+            lst_st[player*2+0] = (lst_st[player*2+0] + i - 1) % 10 + 1
+            lst_st[player*2+1] += lst_st[player*2+0]
+            if lst_st[player*2+1] >= 21:
+                wins[player] += 1
+            else:
+                rec_wins = play(tuple(lst_st), abs(player-1), univs)
+                wins[0] += rec_wins[0]
+                wins[1] += rec_wins[1]
+
+        univs[(*state, player)] = wins
+        return wins
+
+    universes = {}
+    wins = play((p1_starting, 0, p2_starting, 0), 0, universes)
+    print(wins[0] if wins[0] > wins[1] else wins[1])
 
 import sys
 eval('day' + sys.argv[1] + '()')
