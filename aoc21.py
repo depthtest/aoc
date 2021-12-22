@@ -1408,5 +1408,111 @@ def day21p2():
     wins = play((p1_starting, 0, p2_starting, 0), 0, universes)
     print(wins[0] if wins[0] > wins[1] else wins[1])
 
+def day22p1():
+    line_rex = re.compile(r'(?P<toggle>(on|off)) x=(?P<xmin>-?[0-9]+)\.{2}(?P<xmax>-?[0-9]+),y=(?P<ymin>-?[0-9]+)\.{2}(?P<ymax>-?[0-9]+),z=(?P<zmin>-?[0-9]+)\.{2}(?P<zmax>-?[0-9]+)')
+    grid = set()
+    with open('input22', 'r') as opfile:
+        for line in opfile:
+            if match := line_rex.match(line):
+                matches = match.groupdict()
+                for x in range(max(int(matches['xmin']), -50), min(int(matches['xmax']), 50)+1):
+                    for y in range(max(int(matches['ymin']), -50), min(int(matches['ymax']), 50)+1):
+                        for z in range(max(int(matches['zmin']), -50), min(int(matches['zmax']), 50)+1):
+                            if matches['toggle'] == 'on':
+                                grid.add((x,y,z))
+                            else:
+                                grid.discard((x,y,z))
+        print(len(grid))
+
+class Day22:
+    class Region:
+        def __init__(self, xm, xM, ym, yM, zm, zM):
+            self.bound = (xm, xM, ym, yM, zm, zM)
+            self.isvoid = (xM < xm) or (yM < ym) or (zM < xm)
+            self.subregions = []
+        def union(self, other):
+            if self.isvoid:
+                self.bound = None
+                self.isvoid = False
+                self.subregions = [other]
+                return
+            queue = [other] ## Assume other has no subregions
+            while queue:
+                thisregion = queue.pop(0)
+                intersected = False
+                for reg in self.subregions:
+                    if intersect := reg.find_intersection(thisregion):
+                        queue.extend(thisregion.generate_disjoint(intersect)[1:])
+                        intersected = True
+                        break
+                if intersected: continue
+                self.subregions.append(thisregion)
+        def subtract(self, other):
+            ## Assume other has no subregions
+            to_remove = []
+            to_append = []
+            for idx, reg in enumerate(self.subregions):
+                if intersect := reg.find_intersection(other):
+                    to_append.extend(reg.generate_disjoint(intersect)[1:])
+                    to_remove.append(idx)
+            for reg in reversed(to_remove):
+                self.subregions.pop(reg)
+            self.subregions.extend(to_append)
+        def find_intersection(self, other):
+            # None if no intersection
+            # intersection box otherwise
+            if ((self.bound[0] <= other.bound[0] <= self.bound[1]) or \
+                    (self.bound[0] <= other.bound[1] <= self.bound[1]) or \
+                    (other.bound[0] <= self.bound[0] <= other.bound[1]) or \
+                    (other.bound[0] <= self.bound[1] <= other.bound[1])) and \
+                ((self.bound[2] <= other.bound[2] <= self.bound[3]) or \
+                    (self.bound[2] <= other.bound[3] <= self.bound[3]) or \
+                    (other.bound[2] <= self.bound[2] <= other.bound[3]) or \
+                    (other.bound[2] <= self.bound[3] <= other.bound[3])) and \
+                ((self.bound[4] <= other.bound[4] <= self.bound[5]) or \
+                    (self.bound[4] <= other.bound[5] <= self.bound[5]) or \
+                    (other.bound[4] <= self.bound[4] <= other.bound[5]) or \
+                    (other.bound[4] <= self.bound[5] <= other.bound[5])):
+                    return (
+                        max(self.bound[0], other.bound[0]), min(self.bound[1], other.bound[1]),
+                        max(self.bound[2], other.bound[2]), min(self.bound[3], other.bound[3]),
+                        max(self.bound[4], other.bound[4]), min(self.bound[5], other.bound[5])
+                    )
+            return None
+        def generate_disjoint(self, intersection):
+            # first region is always intersection
+            disjoints = []
+            rangesX, rangesY, rangesZ = [(intersection[0], intersection[1])], [(intersection[2], intersection[3])], [(intersection[4], intersection[5])]
+            if self.bound[0] < intersection[0]: rangesX.append((self.bound[0], intersection[0]-1))
+            if self.bound[1] > intersection[1]: rangesX.append((intersection[1]+1, self.bound[1]))
+            if self.bound[2] < intersection[2]: rangesY.append((self.bound[2], intersection[2]-1))
+            if self.bound[3] > intersection[3]: rangesY.append((intersection[3]+1, self.bound[3]))
+            if self.bound[4] < intersection[4]: rangesZ.append((self.bound[4], intersection[4]-1))
+            if self.bound[5] > intersection[5]: rangesZ.append((intersection[5]+1, self.bound[5]))
+            disjoints.extend(Day22.Region(*rX, *rY, *rZ) for rZ in rangesZ for rY in rangesY for rX in rangesX)
+            return disjoints
+        def volume(self):
+            if not self.subregions:
+                return (self.bound[1] - self.bound[0] + 1) * (self.bound[3] - self.bound[2] + 1) * (self.bound[5] - self.bound[4] + 1)
+            return sum(reg.volume() for reg in self.subregions)
+
+def day22p2():
+    line_rex = re.compile(r'(?P<toggle>(on|off)) x=(?P<xmin>-?[0-9]+)\.{2}(?P<xmax>-?[0-9]+),y=(?P<ymin>-?[0-9]+)\.{2}(?P<ymax>-?[0-9]+),z=(?P<zmin>-?[0-9]+)\.{2}(?P<zmax>-?[0-9]+)')
+    onRegion = Day22.Region(0, -1, 0, -1, 0, -1)
+    with open('input22', 'r') as opfile:
+        for line in opfile:
+            if match := line_rex.match(line):
+                matches = match.groupdict()
+                this_region = Day22.Region(
+                            int(matches['xmin']), int(matches['xmax']),
+                            int(matches['ymin']), int(matches['ymax']),
+                            int(matches['zmin']), int(matches['zmax'])
+                        )
+                if matches['toggle'] == 'on':
+                    onRegion.union(this_region)
+                else:
+                    onRegion.subtract(this_region)
+    print(onRegion.volume())
+
 import sys
 eval('day' + sys.argv[1] + '()')
