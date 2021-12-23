@@ -3,6 +3,7 @@ import json
 import re
 from heapq import heapify, heappush, heappop
 from collections import defaultdict
+from copy import deepcopy
 
 def day1p1():
     inc, prev = 0, 0
@@ -798,7 +799,7 @@ def day15p1():
 
     print(acc_matrix[-1][-1])
 
-def day15p2():    
+def day15p2():
     with open('input15', 'r') as opfile:
         matrix = [list(map(lambda x: int(x), line.strip())) for line in opfile.readlines()]
 
@@ -1513,6 +1514,134 @@ def day22p2():
                 else:
                     onRegion.subtract(this_region)
     print(onRegion.volume())
+
+class Day23:
+    class Graph:
+        def __init__(self):
+            self.nverts = 0
+            self.adjacency = defaultdict(list)
+        def get(self, pos):
+            return self.adjacency[pos]
+        @staticmethod
+        def from_file(in_file, addlines=None):
+            state = defaultdict(set)
+            graph = Day23.Graph()
+            lines = in_file.readlines()
+            lines = lines[:3] + (addlines if addlines else []) + lines[3:]
+            for idx, line in enumerate(lines):
+                for jdx, ch in enumerate(line[:-1]):
+                    if ch != '#' and ch != ' ':
+                        for a,b in [(-1,0),(1,0),(0,-1),(0,1)]:
+                            if lines[idx+a][jdx+b] != '#':
+                                graph.adjacency[(idx, jdx)] += [(idx+a, jdx+b)]
+                    if ch not in '#. ':
+                        state[ch].add((idx, jdx))
+            graph.nverts = len(graph.adjacency)
+            for k in state:
+                state[k] = frozenset(state[k])
+            return graph, state
+        def isReachable(self, start, stop, state):
+            occupied = frozenset.union(*state.values())
+            queue = [(start, 0)]
+            visited = set()
+            while queue:
+                nxt, nxt_c = queue.pop(0)
+                for adj in self.get(nxt):
+                    if adj in visited: continue
+                    if adj not in occupied:
+                        if adj == stop:
+                            return nxt_c+1
+                        queue.append((adj, nxt_c+1))
+                visited.add(nxt)
+            return -1
+        def get_available_moves(self, state):
+            all = frozenset.union(*state.values())
+            moves = []
+            for amph, positions in state.items():
+                other = all.difference(positions)
+                for pos in positions:
+                    possible_rooms = set()
+                    for room in self.rooms[amph]:
+                        if room in other:
+                            possible_rooms = set()
+                            break
+                        elif room not in positions:
+                            possible_rooms.add(room)
+                    possible_rooms = set([sorted(possible_rooms, key=lambda x:x[0])[-1]] if possible_rooms else [])
+                    possible_stops = possible_rooms | (self.hallway_stops if pos[0] != 1 else set())
+                    for stop in possible_stops:
+                        steps = self.isReachable(pos, stop, state)
+                        if steps > 0:
+                            moves.append((steps*self.costs[amph], amph, pos, stop))
+            return moves
+        def do_move(self, state, move):
+            new_state = deepcopy(state)
+            tmp = set(new_state[move[1]])
+            tmp.remove(move[2])
+            tmp.add(move[3])
+            new_state[move[1]] = frozenset(tmp)
+            return new_state
+        def comp_cost_heur(self, state):
+            heur_cost = 0
+            for amph, positions in state.items():
+                for pos in positions:
+                    if pos not in self.rooms[amph]:
+                        first_room_amph = sorted(list(self.rooms[amph]), key=lambda x:x[0])[0]
+                        heur_cost += self.costs[amph] * (abs(pos[0]-first_room_amph[0]) + abs(pos[1]-first_room_amph[1]))
+            return heur_cost
+    def a_star(graph, state, end_state):
+        visited = dict()
+        queue = [(0, (0, state))]
+        heapify(queue)
+        while queue:
+            _, (acc_cost, old_state) = heappop(queue)
+            if old_state in visited and acc_cost >= visited[old_state]:
+                continue
+            visited[old_state] = acc_cost
+            old_state = dict(old_state)
+            if old_state == end_state:
+                return acc_cost
+            moves = graph.get_available_moves(old_state)
+            for move in moves:
+                new_state = graph.do_move(old_state, move)
+                new_cost = acc_cost + move[0]
+                heur_cost = graph.comp_cost_heur(new_state)
+                new_state = tuple(sorted(list(new_state.items()), key=lambda x:x[0]))
+                if new_state not in visited or ((new_cost+heur_cost) < visited[new_state]):
+                    heappush(queue, (new_cost + heur_cost, (new_cost, new_state)))
+        return -1
+
+def day23p1():
+    with open('input23', 'r') as opfile:
+        graph, state = Day23.Graph.from_file(opfile)
+
+    graph.costs = {'A':1, 'B':10, 'C':100, 'D':1000}
+    graph.rooms = {
+        'A':frozenset([(2,3),(3,3)]),
+        'B':frozenset([(2,5),(3,5)]),
+        'C':frozenset([(2,7),(3,7)]),
+        'D':frozenset([(2,9),(3,9)])
+    }
+    graph.hallway_stops = frozenset([(1,1),(1,2),(1,4),(1,6),(1,8),(1,10),(1,11)])
+
+    state = tuple(sorted(list(state.items()), key=lambda x:x[0]))
+    print(Day23.a_star(graph, state, graph.rooms))
+
+def day23p2():
+    with open('input23', 'r') as opfile:
+        graph, state = Day23.Graph.from_file(opfile, addlines=['  #D#C#B#A#\n','  #D#B#A#C#\n'])
+
+    graph.costs = {'A':1, 'B':10, 'C':100, 'D':1000}
+    graph.rooms = {
+        'A':frozenset([(2,3),(3,3),(4,3),(5,3)]),
+        'B':frozenset([(2,5),(3,5),(4,5),(5,5)]),
+        'C':frozenset([(2,7),(3,7),(4,7),(5,7)]),
+        'D':frozenset([(2,9),(3,9),(4,9),(5,9)])
+    }
+    graph.hallway_stops = frozenset([(1,1),(1,2),(1,4),(1,6),(1,8),(1,10),(1,11)])
+
+    state = tuple(sorted(list(state.items()), key=lambda x:x[0]))
+    print(Day23.a_star(graph, state, graph.rooms))
 
 import sys
 eval('day' + sys.argv[1] + '()')
