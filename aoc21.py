@@ -1643,5 +1643,42 @@ def day23p2():
     state = tuple(sorted(list(state.items()), key=lambda x:x[0]))
     print(Day23.a_star(graph, state, graph.rooms))
 
+def day25p1():
+    with open('input25', 'r') as opfile:
+        ping = list(map(lambda x: list(x.strip()), opfile.readlines()))
+        pong = [[-1 for x in line] for line in ping]
+
+    steps = 0
+    has_change = True
+    while has_change:
+        has_change = False
+
+        # EAST
+        for jdx in range(len(ping)):
+            idx = 0
+            while idx < len(ping[jdx]):
+                pong[jdx][idx] = ping[jdx][idx]
+                if ping[jdx][idx] == '>' and ping[jdx][(idx+1) % len(ping[jdx])] == '.':
+                    pong[jdx][idx] = '.'
+                    pong[jdx][(idx+1) % len(pong[jdx])] = '>'
+                    idx += 1
+                    has_change = True
+                idx += 1
+        #SOUTH
+        for idx in range(len(pong[jdx])):
+            jdx = 0
+            while jdx < len(pong):
+                ping[jdx][idx] = pong[jdx][idx]
+                if pong[jdx][idx] == 'v' and pong[(jdx+1) % len(pong)][idx] == '.':
+                        ping[jdx][idx] = '.'
+                        ping[(jdx+1) % len(ping)][idx] = 'v'
+                        jdx += 1
+                        has_change = True
+                jdx += 1
+
+        steps += 1
+
+    print(steps)
+
 import sys
 eval('day' + sys.argv[1] + '()')
