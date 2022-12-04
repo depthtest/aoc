@@ -90,5 +90,32 @@ def day3p2():
     for i in range(0, len(lines), 3):
         accum += day3_score(next(iter(set(lines[i]).intersection(set(lines[i+1])).intersection(set(lines[i+2])))))
     print(accum)
+
+def parse_day4():
+    ranges = []
+    with open('input') as ff:
+        for line in ff:
+            ran = line.strip().split(',')
+            ranges.append(list(map(lambda y: (int(y[0]), int(y[1])), map(lambda x: x.split('-'), ran))))
+    return ranges
+def day4p1():
+    ranges = parse_day4()
+    accum = 0
+    for rans in ranges:
+        if (rans[0][0] >= rans[1][0] and rans[0][-1] <= rans[1][-1]) or \
+            (rans[0][0] <= rans[1][0] and rans[0][-1] >= rans[1][-1]):
+            accum += 1
+    print(accum)
+def day4p2():
+    ranges = parse_day4()
+    accum = 0
+    for rans in ranges:
+        if (rans[0][0] <= rans[1][0] <= rans[0][1]) or \
+            (rans[0][0] <= rans[1][1] <= rans[0][1]) or \
+            (rans[1][0] <= rans[0][0] <= rans[1][1]) or \
+            (rans[1][0] <= rans[0][1] <= rans[1][1]):
+            accum += 1
+    print(accum)
+
 import sys
 eval('day' + sys.argv[1] + '()')
