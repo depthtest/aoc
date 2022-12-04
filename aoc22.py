@@ -15,11 +15,9 @@ def parse_day1():
                 curr_deer.append(int(line))
         deers.append(curr_deer)
     return deers
-
 def day1p1():
     deers = parse_day1()
     print(max(map(lambda x: sum(x), deers)))
-
 def day1p2():
     deers = parse_day1()
     print(sum(list(sorted(map(lambda x: sum(x), deers))[-3:])))
@@ -31,7 +29,6 @@ def parse_day2():
             other, me = line.strip().split(' ')
             plays.append((other, me))
     return plays
-
 def day2p1():
     mapper = {
         'A':'R', 'B':'P', 'C':'S',
@@ -51,7 +48,6 @@ def day2p1():
         else:
             acc_score += 3 + score_mapper[play[1]]
     print(acc_score)
-
 def day2p2():
     mapper = {
         'A':'R', 'B':'P', 'C':'S',
@@ -72,5 +68,27 @@ def day2p2():
             acc_score += 3 + score_mapper[play[0]]
     print(acc_score)
 
+def parse_day3():
+    with open('input') as ff:
+        lines = list(map(lambda x:x.strip(), ff.readlines()))
+    return lines
+def day3_score(letter):
+    ilet = ord(letter)
+    if ilet > 96:
+        return ilet - 96
+    else:
+        return ilet - 64 + 26
+def day3p1():
+    lines = parse_day3()
+    accum = 0
+    for line in lines:
+        accum += day3_score(next(iter(set(line[:len(line)//2]).intersection(set(line[len(line)//2:])))))
+    print(accum)
+def day3p2():
+    lines = parse_day3()
+    accum = 0
+    for i in range(0, len(lines), 3):
+        accum += day3_score(next(iter(set(lines[i]).intersection(set(lines[i+1])).intersection(set(lines[i+2])))))
+    print(accum)
 import sys
 eval('day' + sys.argv[1] + '()')
