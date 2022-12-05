@@ -117,5 +117,41 @@ def day4p2():
             accum += 1
     print(accum)
 
+def parse_day5():
+    cols = []
+    moves = []
+    with open('input') as ff:
+        in_cols = True
+        for line in ff:
+            if line == '\n' or line.startswith(' 1'):
+                in_cols = False
+                continue
+            if in_cols:
+                for i in range(1, len(line), 4):
+                    j = (i - 1) // 4
+                    if len(cols) < (j+1): cols.append([])
+                    if line[i] != ' ': cols[j].insert(0, line[i])
+            else:
+                matches = re.match(r'^move (?P<hm>\d+) from (?P<fr>\d+) to (?P<to>\d+)', line)
+                if matches:
+                    moves.append((
+                        int(matches.group('hm')),
+                        int(matches.group('fr')) - 1,
+                        int(matches.group('to')) - 1
+                    ))
+    return cols, moves
+def day5p1():
+    cols, moves = parse_day5()
+    for hm, fr, to in moves:
+        cols[to].extend(reversed(cols[fr][-hm:]))
+        cols[fr] = cols[fr][:-hm]
+    print(''.join(map(lambda x: x[-1], cols)))
+def day5p2():
+    cols, moves = parse_day5()
+    for hm, fr, to in moves:
+        cols[to].extend(cols[fr][-hm:])
+        cols[fr] = cols[fr][:-hm]
+    print(''.join(map(lambda x: x[-1], cols)))
+
 import sys
 eval('day' + sys.argv[1] + '()')
