@@ -153,5 +153,22 @@ def day5p2():
         cols[fr] = cols[fr][:-hm]
     print(''.join(map(lambda x: x[-1], cols)))
 
+def day6p1():
+    with open('input') as ff:
+        line = ff.readlines()[0]
+    for i in range(3, len(line)):
+        prev = set(line[i-3:i])
+        if len(prev) == 3 and line[i] not in prev:
+            print(i+1)
+            break
+def day6p2():
+    with open('input') as ff:
+        line = ff.readlines()[0]
+    for i in range(13, len(line)):
+        prev = set(line[i-13:i])
+        if len(prev) == 13 and line[i] not in prev:
+            print(i+1)
+            break
+
 import sys
 eval('day' + sys.argv[1] + '()')
