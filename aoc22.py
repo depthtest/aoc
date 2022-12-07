@@ -170,5 +170,87 @@ def day6p2():
             print(i+1)
             break
 
+class TreeNode:
+    def __init__(self, name, type, size=0):
+        self._name = name
+        self._type = type
+        self._size = size
+        self._parent = None
+        self._children = []
+    def append(self, child):
+        assert self._type=='file'
+        self._children.append(child)
+        child._parent = self
+        self._upd_size(child._size)
+    def _upd_size(self, add_size):
+        self._size += add_size
+        if self._parent:
+            self._parent._upd_size(add_size)
+    def __repr__(self) -> str:
+        return f'{"D" if self._type=="dir" else "F"} {self._name}'
+def parse_day7():
+    cd = re.compile(r'^\$ cd (?P<folder>\/|[a-z]+|(\.\.))$')
+    ls = re.compile(r'^\$ ls$')
+    dr = re.compile(r'^dir (?P<dir>[a-z]+)$')
+    fl = re.compile(r'^(?P<size>[0-9]+) (?P<filename>.*)$')
+    tree = TreeNode('/', 'dir')
+    curr_node = None
+    mode = 'cd'
+    with open('input') as ff:
+        for line in ff:
+            matches_cd = cd.match(line)
+            if matches_cd:
+                mode = 'cd'
+                to_where = matches_cd.group('folder')
+                if to_where == '/':
+                    curr_node = tree
+                elif to_where == '..':
+                    curr_node = curr_node._parent
+                else:
+                    curr_node = next(iter(filter(lambda x: x._name==to_where and x._type=='dir', curr_node._children)))
+                continue
+            matches_ls = ls.match(line)
+            if matches_ls:
+                mode = 'ls'
+                continue
+            matches_dr = dr.match(line)
+            if matches_dr:
+                assert mode=='ls'
+                curr_node.append(TreeNode(matches_dr.group('dir'), type='dir'))
+                continue
+            matches_fl = fl.match(line)
+            if matches_fl:
+                assert mode=='ls'
+                curr_node.append(TreeNode(matches_fl.group('filename'), type='file', size=int(matches_fl.group('size'))))
+                continue
+    return tree
+def day7p1():
+    tree = parse_day7()
+    accum = 0
+    queue = [tree]
+    while queue:
+        el = queue.pop(0)
+        if el._size <= 100000:
+            accum += el._size
+        for ch in filter(lambda x: x._type=='dir', el._children):
+            queue.append(ch)
+    print(accum)
+def day7p2():
+    tree = parse_day7()
+    total = 70000000
+    requi = 30000000
+    unuse = total - tree._size
+    todel = requi - unuse
+    min_folder = tree
+    queue = [tree]
+    while queue:
+        el = queue.pop(0)
+        if el._size >= todel and el._size < min_folder._size:
+            min_folder = el
+        for ch in filter(lambda x: x._type=='dir', el._children):
+            queue.append(ch)
+    print(min_folder._size)
+
+
 import sys
 eval('day' + sys.argv[1] + '()')
