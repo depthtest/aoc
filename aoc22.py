@@ -251,6 +251,82 @@ def day7p2():
             queue.append(ch)
     print(min_folder._size)
 
+def parse_day8():
+    with open('input') as ff:
+        lines = []
+        for line in ff:
+            lines.append(list(map(lambda x: int(x), line.strip())))
+    return lines
+def day8p1():
+    def isvisible(mm, i, j):
+        isVisible_north = True
+        isVisible_south = True
+        isVisible_east = True
+        isVisible_west = True
+        #north
+        for i2 in range(i):
+            if mm[i2][j] >= mm[i][j]:
+                isVisible_north = False
+                break
+        #south
+        for i2 in range(len(mm)-1, i, -1):
+            if mm[i2][j] >= mm[i][j]:
+                isVisible_south = False
+                break
+        #west
+        for j2 in range(j):
+            if mm[i][j2] >= mm[i][j]:
+                isVisible_west = False
+                break
+        #east
+        for j2 in range(len(mm[0])-1, j, -1):
+            if mm[i][j2] >= mm[i][j]:
+                isVisible_east = False
+                break
+        return isVisible_north or isVisible_south or isVisible_east or isVisible_west
+    mat = parse_day8()
+    accum = (len(mat[0]) * 2) + (len(mat) - 2) * 2
+    for i, row in enumerate(mat[1:-1], 1):
+        for j, col in enumerate(row[1:-1], 1):
+            if isvisible(mat, i, j):
+                accum += 1
+    print(accum)
+def day8p2():
+    def scenic_score(mm, i, j):
+        score_north = 0
+        score_south = 0
+        score_west = 0
+        score_east = 0
+        #north
+        for i2 in range(i-1, -1, -1):
+            score_north += 1
+            if mm[i2][j] >= mm[i][j]:
+                break
+        #south
+        for i2 in range(i+1, len(mm), 1):
+            score_south += 1
+            if mm[i2][j] >= mm[i][j]:
+                break
+        #west
+        for j2 in range(j-1, -1, -1):
+            score_west += 1
+            if mm[i][j2] >= mm[i][j]:
+                break
+        #east
+        for j2 in range(j+1, len(mm[0]), 1):
+            score_east += 1
+            if mm[i][j2] >= mm[i][j]:
+                break
+        return score_north * score_south * score_west * score_east
+    mat = parse_day8()
+    max_score = 0
+    for i, row in enumerate(mat):
+        for j, col in enumerate(row):
+            ij_score = scenic_score(mat, i, j)
+            if ij_score > max_score:
+                max_score = ij_score
+    print(max_score)
+
 
 import sys
 eval('day' + sys.argv[1] + '()')
