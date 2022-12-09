@@ -327,6 +327,76 @@ def day8p2():
                 max_score = ij_score
     print(max_score)
 
+def parse_day9():
+    moves = []
+    with open('input') as ff:
+        for line in ff:
+            matches = re.match(r'^(?P<move>U|D|R|L) (?P<step>\d+)$', line)
+            moves.append((matches.group('move'), int(matches.group('step'))))
+    return moves
+def day9p1():
+    def is_touching(pos1, pos2):
+        if (pos1[0]-pos2[0])**2 > 1 or (pos1[1]-pos2[1])**2 > 1:
+            return False
+        return True
+    moves = parse_day9()
+    head_pos = (0,0)
+    tail_pos = (0,0)
+    tail_visited = set(tail_pos)
+    for move in moves:
+        for step in range(move[1]):
+            if move[0] == 'U':
+                head_pos = (head_pos[0], head_pos[1]+1)
+            elif move[0] == 'D':
+                head_pos = (head_pos[0], head_pos[1]-1)
+            elif move[0] == 'L':
+                head_pos = (head_pos[0]-1, head_pos[1])
+            elif move[0] == 'R':
+                head_pos = (head_pos[0]+1, head_pos[1])
+            if not is_touching(head_pos, tail_pos):
+                if tail_pos[0] == head_pos[0]:
+                    tail_pos = (tail_pos[0], tail_pos[1] + (head_pos[1]-tail_pos[1])//2)
+                elif tail_pos[1] == head_pos[1]:
+                    tail_pos = (tail_pos[0] + (head_pos[0]-tail_pos[0])//2, tail_pos[1])
+                else:
+                    tail_pos = (
+                        tail_pos[0] + (head_pos[0]-tail_pos[0]) / abs(head_pos[0]-tail_pos[0]),
+                        tail_pos[1] + (head_pos[1]-tail_pos[1]) / abs(head_pos[1]-tail_pos[1])
+                    )
+                tail_visited.add(tail_pos)
+    print(len(tail_visited))
+def day9p2():
+    def is_touching(pos1, pos2):
+        if (pos1[0]-pos2[0])**2 > 1 or (pos1[1]-pos2[1])**2 > 1:
+            return False
+        return True
+    moves = parse_day9()
+    poses = [(0,0),(0,0),(0,0),(0,0),(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)]
+    tail_visited = set(poses[-1])
+    for move in moves:
+        for step in range(move[1]):
+            if move[0] == 'U':
+                poses[0] = (poses[0][0], poses[0][1]+1)
+            elif move[0] == 'D':
+                poses[0] = (poses[0][0], poses[0][1]-1)
+            elif move[0] == 'L':
+                poses[0] = (poses[0][0]-1, poses[0][1])
+            elif move[0] == 'R':
+                poses[0] = (poses[0][0]+1, poses[0][1])
+            for idx, _ in enumerate(poses[1:], 1):
+                if not is_touching(poses[idx-1], poses[idx]):
+                    if poses[idx][0] == poses[idx-1][0]:
+                        poses[idx] = (poses[idx][0], poses[idx][1] + (poses[idx-1][1]-poses[idx][1])//2)
+                    elif poses[idx][1] == poses[idx-1][1]:
+                        poses[idx] = (poses[idx][0] + (poses[idx-1][0]-poses[idx][0])//2, poses[idx][1])
+                    else:
+                        poses[idx] = (
+                            poses[idx][0] + (poses[idx-1][0]-poses[idx][0]) / abs(poses[idx-1][0]-poses[idx][0]),
+                            poses[idx][1] + (poses[idx-1][1]-poses[idx][1]) / abs(poses[idx-1][1]-poses[idx][1])
+                        )
+                    if idx==9:
+                        tail_visited.add(poses[idx])
+    print(len(tail_visited))
 
 import sys
 eval('day' + sys.argv[1] + '()')
