@@ -398,5 +398,55 @@ def day9p2():
                         tail_visited.add(poses[idx])
     print(len(tail_visited))
 
+def parse_day10():
+    lines = []
+    with open('input') as ff:
+        for line in ff:
+            if line.startswith('noop'):
+                lines.append(('noop',0))
+            else:
+                matches = re.match(r'^addx (?P<disp>-?\d+)$', line.strip())
+                lines.append(('addx', int(matches.group('disp'))))
+    return lines
+def day10p1():
+    lines = parse_day10()
+    acc_cycles = [1]
+    acc_regs = [1]
+    for line in lines:
+        if line[0] == 'noop':
+            acc_cycles.append(acc_cycles[-1]+1)
+        elif line[0] == 'addx':
+            acc_cycles.append(acc_cycles[-1]+2)
+        acc_regs.append(acc_regs[-1] + line[1])
+    cycle_search = [20,60,100,140,180,220]
+    accum = 0
+    for c in cycle_search:
+        id, _ = list(filter(lambda x: x[1]>=c, enumerate(acc_cycles)))[0]
+        accum += c * acc_regs[id]
+    print(accum)
+def day10p2():
+    lines = parse_day10()
+    acc_cycles = [1]
+    acc_regs = [1]
+    for line in lines:
+        if line[0] == 'noop':
+            acc_cycles.append(acc_cycles[-1]+1)
+        elif line[0] == 'addx':
+            acc_cycles.append(acc_cycles[-1]+2)
+        acc_regs.append(acc_regs[-1] + line[1])
+    c = 1
+    stri = ''
+    while c < acc_cycles[-1]:
+        id, _ = list(filter(lambda x: x[1]>=c, enumerate(acc_cycles)))[0]
+        if c % 40 in [acc_regs[id]-1, acc_regs[id], acc_regs[id]+1]:
+            stri += '#'
+        else:
+            stri += '.'
+        if c % 40 == 0:
+            print(stri)
+            stri = ''
+        c += 1
+    
+
 import sys
 eval('day' + sys.argv[1] + '()')
