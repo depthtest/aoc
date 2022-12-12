@@ -446,7 +446,103 @@ def day10p2():
             print(stri)
             stri = ''
         c += 1
-    
+
+def parse_day11():
+    monkey = re.compile(r'^Monkey (?P<idmon>\d+):$')
+    st_itm = re.compile(r'\s*Starting items: (?P<items>.+)$')
+    operat = re.compile(r'\s*Operation: (?P<where>[a-z]+) = (?P<op1>[a-z]+) (?P<op>\+|\*|) (?P<op2>([a-z]+)|\d+)')
+    testop = re.compile(r'\s*Test: divisible by (?P<div>\d+)')
+    iftrue = re.compile(r'\s*If true: throw to monkey (?P<tomonkey>\d+)')
+    iffals = re.compile(r'\s*If false: throw to monkey (?P<tomonkey>\d+)')
+    monkeys = []
+    curr_monkey = []
+    with open('input') as ff:
+        for line in ff:
+            if monkey.match(line):
+                curr_monkey = []
+                continue
+            mm = st_itm.match(line)
+            if mm: 
+                curr_monkey.append(list(map(lambda x:int(x), mm.group('items').split(','))))
+                continue
+            mm = operat.match(line)
+            if mm: 
+                curr_monkey.append((
+                    mm.group('where'),
+                    mm.group('op1'),
+                    mm.group('op'),
+                    mm.group('op2'),
+                ))
+                continue
+            mm = testop.match(line)
+            if mm: 
+                curr_monkey.append(int(mm.group('div')))
+                continue
+            mm = iftrue.match(line)
+            if mm: 
+                curr_monkey.append(int(mm.group('tomonkey')))
+                continue
+            mm = iffals.match(line)
+            if mm: 
+                curr_monkey.append(int(mm.group('tomonkey')))
+                continue
+            monkeys.append(curr_monkey)
+            #curr_monkey = []
+        monkeys.append(curr_monkey)
+    return monkeys
+def day11p1():
+    monkeys = parse_day11()
+    rounds = 20
+    inspections = [0 for _ in monkeys]
+    for r in range(rounds):
+        for idx, _ in enumerate(monkeys):
+            while monkeys[idx][0]:
+                curr_worry = monkeys[idx][0].pop(0)
+                howmuch = curr_worry if monkeys[idx][1][-1] == 'old' else int(monkeys[idx][1][-1])
+                
+                if monkeys[idx][1][-2] == '*':
+                    curr_worry *= howmuch
+                elif monkeys[idx][1][-2] == '+':
+                    curr_worry += howmuch
+                else: raise ValueError()
+                
+                curr_worry = curr_worry // 3
+                if curr_worry % monkeys[idx][2] == 0:
+                    monkeys[monkeys[idx][3]][0].append(curr_worry)
+                else:
+                    monkeys[monkeys[idx][4]][0].append(curr_worry)
+                inspections[idx] += 1
+    insp_sort = sorted(inspections)
+    print(insp_sort[-1]*insp_sort[-2])
+def day11p2():
+    monkeys = parse_day11()
+    rounds = 10000
+    acc = 1
+    for i in monkeys:
+        acc *= i[2]
+    inspections = [0 for _ in monkeys]
+    for r in range(rounds):
+        for idx, _ in enumerate(monkeys):
+            while monkeys[idx][0]:
+                curr_worry = monkeys[idx][0].pop(0)
+                howmuch = curr_worry if monkeys[idx][1][-1] == 'old' else int(monkeys[idx][1][-1])
+                
+                if monkeys[idx][1][-2] == '*':
+                    curr_worry *= howmuch
+                elif monkeys[idx][1][-2] == '+':
+                    curr_worry += howmuch
+                else: raise ValueError()
+                
+                curr_worry = curr_worry % acc
+                if curr_worry % monkeys[idx][2] == 0:
+                    monkeys[monkeys[idx][3]][0].append(curr_worry)
+                else:
+                    monkeys[monkeys[idx][4]][0].append(curr_worry)
+                inspections[idx] += 1
+    insp_sort = sorted(inspections)
+    print(insp_sort[-1]*insp_sort[-2])
+
+
 
 import sys
 eval('day' + sys.argv[1] + '()')
