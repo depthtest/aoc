@@ -1,6 +1,7 @@
 import math
 import re
 from heapq import heapify, heappush, heappop
+from pprint import pprint
 
 def parse_day1():
     deers = []
@@ -542,7 +543,68 @@ def day11p2():
     insp_sort = sorted(inspections)
     print(insp_sort[-1]*insp_sort[-2])
 
-
+def parse_day12():
+    maze = []
+    with open('input') as ff:
+        maze = list(map(lambda x: x.strip(), ff.readlines()))
+    start = None
+    end = None
+    for i, line in enumerate(maze):
+        s_pos = line.find('S')
+        if s_pos != -1: start = (i, s_pos)
+        e_pos = line.find('E')
+        if e_pos != -1: end = (i, e_pos)
+    maze[start[0]] = maze[start[0]].replace('S','a')
+    maze[end[0]] = maze[end[0]].replace('E', 'z')
+    return maze, start, end
+def day12p1():
+    maze, start, end = parse_day12()
+    def isvalid(maze, pos, curr):
+        if (0 <= pos[0] < len(maze)) and (0 <= pos[1] < len(maze[pos[0]])) and (ord(maze[pos[0]][pos[1]])-ord(maze[curr[0]][curr[1]]))<2:
+            return True
+        return False
+    def add_disp(pos, neig):
+        return (pos[0]+neig[0], pos[1]+neig[1])
+    neighs = [(1,0),(-1,0),(0,1),(0,-1)]
+    queue = [(start, [])]
+    visited = {}
+    path = None
+    while queue and not path:
+        curr = queue.pop(0)
+        visited[curr[0]] = 'V'
+        for nn in neighs:
+            new_pos = add_disp(curr[0], nn)
+            if isvalid(maze, new_pos, curr[0]) and new_pos not in visited:
+                visited[new_pos] = 'F'
+                if new_pos == end:
+                    path = curr[1] + [curr[0] + new_pos]
+                    break
+                queue.append((new_pos, curr[1]+[curr[0]]))
+    print(len(path))
+def day12p2():
+    maze, _, end = parse_day12()
+    def isvalid(maze, pos, curr):
+        if (0 <= pos[0] < len(maze)) and (0 <= pos[1] < len(maze[pos[0]])) and (ord(maze[curr[0]][curr[1]])-ord(maze[pos[0]][pos[1]]))<2:
+            return True
+        return False
+    def add_disp(pos, neig):
+        return (pos[0]+neig[0], pos[1]+neig[1])
+    neighs = [(1,0),(-1,0),(0,1),(0,-1)]
+    queue = [(end, [])]
+    visited = {}
+    path = None
+    while queue and not path:
+        curr = queue.pop(0)
+        visited[curr[0]] = 'V'
+        for nn in neighs:
+            new_pos = add_disp(curr[0], nn)
+            if isvalid(maze, new_pos, curr[0]) and new_pos not in visited:
+                visited[new_pos] = 'F'
+                if maze[new_pos[0]][new_pos[1]] == 'a':
+                    path = curr[1] + [curr[0] + new_pos]
+                    break
+                queue.append((new_pos, curr[1]+[curr[0]]))
+    print(len(path))
 
 import sys
 eval('day' + sys.argv[1] + '()')
