@@ -1,6 +1,8 @@
 import math
 import re
 from heapq import heapify, heappush, heappop
+import itertools
+import functools
 from pprint import pprint
 
 def parse_day1():
@@ -605,6 +607,68 @@ def day12p2():
                     break
                 queue.append((new_pos, curr[1]+[curr[0]]))
     print(len(path))
+
+def parse_day13():
+    with open('input') as ff:
+        pairs = []
+        curr_pair_A = None
+        for line in ff:
+            if line.strip() == '':
+                curr_pair_A = None
+                continue
+            ll = eval(line.strip())
+            if curr_pair_A is None:
+                curr_pair_A = ll
+            else:
+                pairs.append((curr_pair_A, ll))
+    return pairs
+def day13p1():
+    pairs = parse_day13()
+
+    def cmp(left, right):
+        if type(left) == int and type(right) == int:
+            if left < right: return -1
+            return left > right
+        if type(left) == list and type(right) == list:
+            for i in range(min(len(left), len(right))):
+                c = cmp(left[i], right[i])
+                if c: return c
+            return cmp(len(left), len(right))
+        if type(left) == int and type(right) == list:
+            return cmp([left], right)
+        if type(left) == list and type(right) == int:
+            return cmp(left, [right])
+
+    acc = 0
+    for idx, pair in enumerate(pairs,1):
+        if cmp(pair[0], pair[1]) <= 0:
+            acc += idx
+    print(acc)
+def day13p2():
+    pairs = parse_day13()
+    pp = []
+    for p in pairs:
+        pp.extend(p)
+
+    def cmp(left, right):
+        if type(left) == int and type(right) == int:
+            if left < right: return -1
+            return left > right
+        if type(left) == list and type(right) == list:
+            for i in range(min(len(left), len(right))):
+                c = cmp(left[i], right[i])
+                if c: return c
+            return cmp(len(left), len(right))
+        if type(left) == int and type(right) == list:
+            return cmp([left], right)
+        if type(left) == list and type(right) == int:
+            return cmp(left, [right])
+    
+    pp.append([[2]])
+    pp.append([[6]])
+    pp.sort(key=functools.cmp_to_key(cmp))
+
+    print((pp.index([[2]])+1)*(pp.index([[6]])+1))
 
 import sys
 eval('day' + sys.argv[1] + '()')
