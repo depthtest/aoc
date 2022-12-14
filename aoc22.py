@@ -670,5 +670,78 @@ def day13p2():
 
     print((pp.index([[2]])+1)*(pp.index([[6]])+1))
 
+def d14div(A, sca):
+    return (A[0]//sca, A[1]//sca)
+def d14dot(A,B):
+    return A[0]*B[0]+A[1]*B[1]
+def d14norm(A):
+    return d14div(A, int(math.sqrt(d14dot(A,A))))
+def d14diff(A, B):
+    return (A[0]-B[0], A[1]-B[1])
+def d14add(A, B):
+    return (A[0]+B[0], A[1]+B[1])
+def parse_day14():
+    grid = {}
+    min_height = 0
+    with open('input') as ff:
+        for line in map(lambda x:x.strip(), ff):
+            coords = list(map(lambda x: tuple(map(lambda y: int(y), x.split(','))), line.split(' -> ')))
+            min_height = max(min_height, max(coords, key=lambda x:x[1])[1])
+            for i in range(len(coords)-1):
+                vec = d14norm(d14diff(coords[i+1], coords[i]))
+                curr = coords[i]
+                while curr != coords[i+1]:
+                    grid[curr] = 'r'
+                    curr = d14add(curr, vec)
+                grid[curr] = 1
+    return grid, min_height
+def day14p1():
+    grid, min_height = parse_day14()
+    print(grid,min_height)
+    acc_min_height = 0
+    num_particles = 0
+    while acc_min_height < min_height:
+        in_rest = False
+        curr_pos = (500, 0)
+        num_particles += 1
+        while not in_rest:
+            if d14add(curr_pos, (0,1)) not in grid:
+                curr_pos = d14add(curr_pos, (0,1))
+            elif d14add(curr_pos, (-1,1)) not in grid:
+                curr_pos = d14add(curr_pos, (-1,1))
+            elif d14add(curr_pos, (1,1)) not in grid:
+                curr_pos = d14add(curr_pos, (1,1))
+            else:
+                grid[curr_pos] = 's'
+                in_rest = True
+            acc_min_height = max(acc_min_height, curr_pos[1])
+            if acc_min_height == min_height:
+                break
+    num_particles -= 1
+    print(num_particles)
+def day14p2():
+    grid, min_height = parse_day14()
+    num_particles = 0
+    start_pos = (500, 0)
+    curr_pos = (500, -1)
+    while curr_pos != start_pos:
+        in_rest = False
+        curr_pos = start_pos
+        num_particles += 1
+        while not in_rest:
+            if d14add(curr_pos, (0,1)) not in grid:
+                curr_pos = d14add(curr_pos, (0,1))
+            elif d14add(curr_pos, (-1,1)) not in grid:
+                curr_pos = d14add(curr_pos, (-1,1))
+            elif d14add(curr_pos, (1,1)) not in grid:
+                curr_pos = d14add(curr_pos, (1,1))
+            else:
+                grid[curr_pos] = 's'
+                in_rest = True
+            if curr_pos[1] == (2 + min_height - 1):
+                grid[curr_pos] = 's'
+                in_rest = True
+    print(num_particles)
+
 import sys
 eval('day' + sys.argv[1] + '()')
