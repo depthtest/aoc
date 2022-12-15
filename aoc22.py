@@ -743,5 +743,53 @@ def day14p2():
                 in_rest = True
     print(num_particles)
 
+def manhattan(A, B):
+    return abs(A[0]-B[0]) + abs(A[1]-B[1])
+def parse_day15():
+    SB = []
+    with open('input') as ff:
+        for line in ff:
+            matches = re.match(r'^Sensor at x=(?P<Sx>-?\d+), y=(?P<Sy>-?\d+): closest beacon is at x=(?P<Bx>-?\d+), y=(?P<By>-?\d+)', line)
+            S = (int(matches.group('Sx')), int(matches.group('Sy')))
+            B = (int(matches.group('Bx')), int(matches.group('By')))
+            SB.append((S, B, manhattan(S, B)))
+    return SB
+def day15p1():
+    SB = parse_day15()
+    beacons = set([x[1] for x in SB])
+    where_y = 2000000
+    positions = set()
+    for S, B, mSB in SB:
+        if abs(where_y - S[1]) <= mSB:
+            ini_x = S[0] - mSB
+            end_x = S[0] + mSB
+            for x in range(ini_x, end_x+1):
+                if manhattan(S, (x, where_y)) <= mSB:
+                    positions.add((x, where_y))
+    positions = positions.difference(beacons)
+    print(len(positions))
+def day15p2():
+    SB = parse_day15()
+    for y in range(4000001):
+        xrange = []
+        for S, B, mSB in SB:
+            diff = abs(y-S[1])
+            if diff <= mSB:
+                xrange.append((S[0]-(mSB-diff), S[0]+(mSB-diff)))
+        xrange = sorted(xrange, key=lambda x:x[0])
+        i = 1
+        while i < len(xrange):
+            if xrange[i][0] <= xrange[i-1][1]+1:
+                left = xrange.pop(i-1)
+                right = xrange.pop(i-1)
+                xrange.insert(i-1, (min(left[0], right[0]), max(left[1],right[1])))
+            else:
+                i += 1
+        if len(xrange) > 1:
+            x = xrange[0][1]+1
+            print(x, y, 4000000*x+y)
+            return
+
+
 import sys
 eval('day' + sys.argv[1] + '()')
