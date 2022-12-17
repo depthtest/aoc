@@ -790,6 +790,91 @@ def day15p2():
             print(x, y, 4000000*x+y)
             return
 
+class Graph:
+    def __init__(self, nodes, edges):
+        self._nodes = nodes
+        self._edges = edges
+    def __str__(self):
+        return f'Nodes: {str(self._nodes)}\nEdges:{str(self._edges)}'
+    def get_flow(self, node):
+        return self._nodes[node]
+    def get_neighs(self, node):
+        return self._edges[node]
+def parse_day16():
+    nodes = {}
+    edges = {}
+    with open('input') as ff:
+        for line in ff:
+            matches = re.match(r'^Valve (?P<vname>[A-Z]+) has flow rate=(?P<flow>\d+); tunnel(s?) lead(s?) to valve(s?) (?P<conn>.+)$', line)
+            nodes[matches.group('vname')] = int(matches.group('flow'))
+            edges[matches.group('vname')] = matches.group('conn').split(', ')
+    return Graph(nodes, edges)
+def dijkstra_d16(graph, start_node):
+    visited = {}
+    paths = {}
+    queue = []
+    heappush(queue, (1, start_node))
+    while queue:
+        node = heappop(queue)
+        if node[1] in visited:
+            continue
+        visited[node[1]] = 'V'
+        paths[node[1]] = node[0]
+        for child in graph.get_neighs(node[1]):
+            if child not in visited:
+                child_cost = node[0] + 1
+                heappush(queue, (child_cost, child) )
+    paths = dict(filter(lambda x: graph.get_flow(x[0]) > 0, paths.items()))
+    return paths
+def day16p1():
+    graph = parse_day16()
+    nidx = {k:idx for idx, k in enumerate(graph._nodes.keys())}
+    dist_mat = [[0 for i in graph._nodes.keys()] for _ in graph._nodes.keys()]
+    for node in ['AA']+list(filter(lambda x: graph.get_flow(x)>0,nidx.keys())):
+        dists = dijkstra_d16(graph, node)
+        for k, v in dists.items():
+            dist_mat[nidx[node]][nidx[k]] = v
+    queue = [(0, ('AA', 30, []))]
+    heapify(queue)
+    nflow = list(filter(lambda x: graph.get_flow(x) > 0, graph._nodes.keys()))
+    max_flow = 0
+    while queue:
+        flow, (node, rtime, path) = heappop(queue)
+        if flow > max_flow:
+            max_flow = flow
+        for neig in filter(lambda x: x not in path and x!=node, nflow):
+            new_rtime =  rtime - dist_mat[nidx[node]][nidx[neig]]
+            if new_rtime > 0:
+                heappush(queue, (flow + new_rtime*graph.get_flow(neig), (neig, new_rtime, path + [node])))
+    print(max_flow)
+def day16p2():
+    graph = parse_day16()
+    nidx = {k:idx for idx, k in enumerate(graph._nodes.keys())}
+    dist_mat = [[0 for i in graph._nodes.keys()] for _ in graph._nodes.keys()]
+    for node in ['AA']+list(filter(lambda x: graph.get_flow(x)>0,nidx.keys())):
+        dists = dijkstra_d16(graph, node)
+        for k, v in dists.items():
+            dist_mat[nidx[node]][nidx[k]] = v
+    queue = [(1e6, ('AA', 26, [], 'AA', 26, []))]
+    heapify(queue)
+    nflow = list(filter(lambda x: graph.get_flow(x) > 0, graph._nodes.keys()))
+    max_flow = 0
+    while queue:
+        flow, (node_el, rtime_el, path_el, node_hu, rtime_hu, path_hu) = heappop(queue)
+        ## sorting the heap in descending order, at about 15 min achieves the best (still not finished) at G Colab
+        if 1/flow > max_flow:
+            max_flow = 1/flow
+            print(max_flow, (node_el, rtime_el, path_el, node_hu, rtime_hu, path_hu))
+        for neig_el in filter(lambda x: x not in (path_el+path_hu) and x!=node_el and x!=node_hu, nflow):
+            for neig_hu in filter(lambda x: x not in (path_el+path_hu) and x!=node_hu and x!= node_el and x!=neig_el, nflow):
+                new_rtime_el =  rtime_el - dist_mat[nidx[node_el]][nidx[neig_el]]
+                new_rtime_hu =  rtime_hu - dist_mat[nidx[node_hu]][nidx[neig_hu]]
+                if new_rtime_el >= 0 and new_rtime_hu >= 0:
+                    heappush(queue, (1/(1/flow + new_rtime_el*graph.get_flow(neig_el) + new_rtime_hu*graph.get_flow(neig_hu)), (
+                            neig_el, new_rtime_el, path_el + [node_el],
+                            neig_hu, new_rtime_hu, path_hu + [node_hu],
+                        )))
+    print(max_flow)
 
 import sys
 eval('day' + sys.argv[1] + '()')
