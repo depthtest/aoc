@@ -876,5 +876,53 @@ def day16p2():
                         )))
     print(max_flow)
 
+def parse_day18():
+    with open('input') as ff:
+        cubes = list(map(lambda y: tuple(map(lambda z: int(z), y.split(','))), map(lambda x: x.strip(), ff.readlines())))
+    return cubes
+def day18p1():
+    def add_cube(cube, diff):
+        return tuple(map(lambda x: x[0]+x[1], zip(cube, diff)))
+    cubes = parse_day18()
+    hs_map = {}
+    for cube in cubes:
+        hs_map[cube] = 1
+    acc_sides = 0
+    for cube in cubes:
+        free_sides = 6
+        for i in [(1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1), (0,0,-1)]:
+            if add_cube(cube, i) in hs_map:
+                free_sides -= 1
+        acc_sides += free_sides
+    print(acc_sides)
+def day18p2():
+    def add_cube(cube, diff):
+        return tuple(map(lambda x: x[0]+x[1], zip(cube, diff)))
+    def is_inside(cube, min_cube, max_cube):
+        return min_cube[0] <= cube[0] <= max_cube[0] \
+            and min_cube[1] <= cube[1] <= max_cube[1] \
+            and min_cube[2] <= cube[2] <= max_cube[2]
+    cubes = parse_day18()
+    min_cube = add_cube((min(cubes, key=lambda x: x[0])[0], min(cubes, key=lambda x: x[1])[1], min(cubes, key=lambda x: x[2])[2]), (-1,-1,-1))
+    max_cube = add_cube((max(cubes, key=lambda x: x[0])[0], max(cubes, key=lambda x: x[1])[1], max(cubes, key=lambda x: x[2])[2]), (1,1,1))
+    hs_map = {}
+    for cube in cubes:
+        hs_map[cube] = 1
+    acc_sides = 0
+    queue = [min_cube]
+    visited = {}
+    while queue:
+        node = queue.pop(0)
+        visited[node] = 'V'
+        for i in [(1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1), (0,0,-1)]:
+            next_cube = add_cube(node, i)
+            if next_cube in visited or not is_inside(next_cube, min_cube, max_cube): continue
+            if next_cube in hs_map:
+                acc_sides += 1
+            else:
+                queue.append(next_cube)
+                visited[next_cube] = 'F'
+    print(acc_sides)
+
 import sys
 eval('day' + sys.argv[1] + '()')
