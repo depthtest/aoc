@@ -924,6 +924,43 @@ def day18p2():
                 visited[next_cube] = 'F'
     print(acc_sides)
 
+def parse_day20():
+    with open('input') as ff:
+        numbers = list(map(lambda x: int(x.strip()), ff.readlines()))
+    return numbers
+def mix_d20(numbers, indices):
+    for idx, num in enumerate(numbers):
+        if num == 0: continue
+        fr_id = indices[idx]
+        to_id = (indices[idx] + num) % (len(numbers)-1)
+        # to_id = (indices[idx] + num) % len(numbers)
+        if fr_id < to_id:
+            for i in range(len(numbers)):
+                if fr_id < indices[i] <= to_id:
+                    indices[i] -= 1
+            indices[idx] = to_id
+        else: # to_id < fr_id
+            for i in range(len(numbers)):
+                if to_id <= indices[i] < fr_id:
+                    indices[i] += 1
+            indices[idx] = to_id
+    sort_nums = list(map(lambda y: y[0], sorted(zip(numbers, indices), key=lambda x:x[1])))
+    return sort_nums
+def day20p1():
+    numbers = parse_day20()
+    indices = list(range(len(numbers)))
+    sort_nums = mix_d20(numbers, indices)
+    init_idx = indices[numbers.index(0)]
+    print(sum(sort_nums[(init_idx+i)%len(numbers)] for i in  [1000, 2000, 3000]))
+def day20p2():
+    decrypt_key = 811589153
+    numbers = list(map(lambda x: x*decrypt_key, parse_day20()))
+    indices = list(range(len(numbers)))
+    for i in range(10):
+        sort_numbers = mix_d20(numbers, indices)
+    init_idx = indices[numbers.index(0)]
+    print(sum(sort_numbers[(init_idx+i)%len(numbers)] for i in  [1000, 2000, 3000]))
+
 def parse_day21():
     opis = {}
     with open('input') as ff:
