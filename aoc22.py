@@ -924,5 +924,69 @@ def day18p2():
                 visited[next_cube] = 'F'
     print(acc_sides)
 
+def parse_day21():
+    opis = {}
+    with open('input') as ff:
+        for line in map(lambda x: x.strip(), ff):
+            matches = re.match(r'^(?P<monkey>[a-z]+): ((?P<num>\d+)|((?P<m1>[a-z]+) (?P<op>\+|-|\*|/) (?P<m2>[a-z]+)))', line)
+            md = matches.groupdict()
+            opis[md['monkey']] = int(md['num']) if md['num'] else (md['m1'], md['op'], md['m2'])
+    return opis
+def comp_monkey_d21(monkeys, which):
+    if isinstance(monkeys[which], int):
+        return monkeys[which]
+    left = comp_monkey_d21(monkeys, monkeys[which][0])
+    right = comp_monkey_d21(monkeys, monkeys[which][2])
+    if monkeys[which][1] == '+':
+        monkeys[which] = left + right
+    elif monkeys[which][1] == '-':
+        monkeys[which] = left - right
+    elif monkeys[which][1] == '*':
+        monkeys[which] = left * right
+    elif monkeys[which][1] == '/':
+        monkeys[which] = left // right
+    return monkeys[which]
+def inv_op_d21(op, V, A=None, B=None):
+    # V = A op B
+    assert A or B
+    if op == '+': return V - (A if A else B)
+    if op == '-':
+        if A: return A - V
+        if B: return V + B
+    if op == '*': return V // (A if A else B)
+    if op == '/':
+        if A: return A // V
+        if B: return V * B
+def comp_humn_d21(insubtreef, monkeys, what, value):
+    if what=='humn': return value
+    if insubtreef(monkeys[what][0]): # LEFT
+        right = comp_monkey_d21(monkeys, monkeys[what][2])
+        return comp_humn_d21(insubtreef, monkeys, monkeys[what][0], inv_op_d21(monkeys[what][1], value, B=right))
+    elif insubtreef(monkeys[what][2]):
+        left = comp_monkey_d21(monkeys, monkeys[what][0])
+        return comp_humn_d21(insubtreef, monkeys, monkeys[what][2], inv_op_d21(monkeys[what][1], value, A=left))
+def day21p1():
+    monkeys = parse_day21()
+    print(comp_monkey_d21(monkeys, 'root'))
+def day21p2():
+    monkeys = parse_day21()
+    def gen_insubtree(monkeys, what):
+        store = {}
+        def insubtree(subtree):
+            if isinstance(monkeys[subtree], int):
+                store[subtree] = (what == subtree)
+                return store[subtree]
+            store[subtree] = insubtree(monkeys[subtree][0]) or insubtree(monkeys[subtree][2])
+            return store[subtree]
+        return insubtree
+    insubtree_d21 = gen_insubtree(monkeys, 'humn')
+    if insubtree_d21(monkeys['root'][0]): # LEFT
+        right = comp_monkey_d21(monkeys, monkeys['root'][2])
+        val = comp_humn_d21(insubtree_d21, monkeys, monkeys['root'][0], right)
+    elif insubtree_d21(monkeys['root'][2]): # RIGHT
+        left = comp_monkey_d21(monkeys, monkeys['root'][0])
+        val = comp_humn_d21(insubtree_d21, monkeys, monkeys['root'][2], left)
+    print(val)
+
 import sys
 eval('day' + sys.argv[1] + '()')
